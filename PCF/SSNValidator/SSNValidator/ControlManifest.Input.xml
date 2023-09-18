@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="Fellowmind" constructor="SSNValidator" version="1.0.1" display-name-key="Finnish Social Security Number Validator" description-key="Apply Finnish SSN Validation on Text Field" control-type="standard" >
+    <type-group name="singleLineGroup"> 
+      <type>SingleLine.Text</type>       
+    </type-group>
+    <external-service-usage enabled="false">
+    </external-service-usage>
+    <!-- property node identifies a specific, configurable piece of data that the control expects from CDS -->
+       <property name="textValueToProcess" display-name-key="Input Text" 
+    description-key="Input Text To Process" of-type-group="singleLineGroup" 
+    usage="bound" required="true" />
+    <property name="notificationToUser" display-name-key="Field Notification"
+    description-key="Field Notification To User. Default Message will be Incorrect Format."
+    of-type="SingleLine.TextArea" usage="input" required="false" />
+     <!--
+      Property node's of-type attribute can be of-type-group attribute.
+      Example:
+      <type-group name="numbers">
+        <type>Whole.None</type>
+        <type>Currency</type>
+        <type>FP</type>
+        <type>Decimal</type>
+      </type-group>
+      <property name="sampleProperty" display-name-key="Property_Display_Key" description-key="Property_Desc_Key" of-type-group="numbers" usage="bound" required="true" />
+    -->
+    <resources>
+      <code path="index.ts" order="1"/>
+      <css path="css/SSNValidator.css" order="1" />
+      <!-- UNCOMMENT TO ADD MORE RESOURCES
+      <css path="css/SSNValidator.css" order="1" />
+      <resx path="strings/SSNValidator.1033.resx" version="1.0.0" />
+      -->
+    </resources>
+    <!-- UNCOMMENT TO ENABLE THE SPECIFIED API
+    <feature-usage>
+      <uses-feature name="Device.captureAudio" required="true" />
+      <uses-feature name="Device.captureImage" required="true" />
+      <uses-feature name="Device.captureVideo" required="true" />
+      <uses-feature name="Device.getBarcodeValue" required="true" />
+      <uses-feature name="Device.getCurrentPosition" required="true" />
+      <uses-feature name="Device.pickFile" required="true" />
+      <uses-feature name="Utility" required="true" />
+      <uses-feature name="WebAPI" required="true" />
+    </feature-usage>
+    -->
+  </control>
+</manifest>
