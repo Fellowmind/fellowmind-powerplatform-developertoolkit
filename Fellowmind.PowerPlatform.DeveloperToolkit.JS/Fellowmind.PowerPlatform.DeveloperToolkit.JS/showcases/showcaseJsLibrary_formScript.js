@@ -266,8 +266,22 @@ fmfi.JsLibrary = fmfi.JsLibrary || function () {
         JsLib.UI.Field.SetSubmitMode("fmfi_hidetabs", JsLib.Enums.Field_SubmitModes.NEVER);        
         JsLib.UI.Field.SetSubmitMode("fmfi_executeaction", JsLib.Enums.Field_SubmitModes.NEVER);
         JsLib.UI.Field.SetSubmitMode("fmfi_executeunboundaction", JsLib.Enums.Field_SubmitModes.NEVER);
-        JsLib.UI.Field.SetSubmitMode("fmfi_executehttpreq", JsLib.Enums.FieldRequirement_Level.SetSubmitMode.NEVER);
+        JsLib.UI.Field.SetSubmitMode("fmfi_executehttpreq", JsLib.Enums.Field_SubmitModes.NEVER);
     }
+
+    var checkIfUserIsAdmin = function () {
+        // <summary>
+        // Checks if the current user is admin.
+        // </summary>
+
+        if (!JsLib.CurrentUser.HasRole("System Administrator")) {
+            JsLib.Logger.Info("User is not an admin.");
+        }
+        else {
+            JsLib.Logger.Info("User is an admin.");
+        }
+            
+    } 
 
     //////////////////////////////////////////////////////////////////
     /// Public interface                                           ///
@@ -307,6 +321,8 @@ fmfi.JsLibrary = fmfi.JsLibrary || function () {
 
                     // Never save the value in these fields
                     setFieldsThatShouldNeverBeSaved();
+
+                    checkIfUserIsAdmin();
 
                     // By default lock these fields
                     if (JsLib.UI.Form.GetState() == JsLib.Enums.FormType.UNDEFINED || JsLib.UI.Form.GetState() == JsLib.Enums.FormType.CREATE) {

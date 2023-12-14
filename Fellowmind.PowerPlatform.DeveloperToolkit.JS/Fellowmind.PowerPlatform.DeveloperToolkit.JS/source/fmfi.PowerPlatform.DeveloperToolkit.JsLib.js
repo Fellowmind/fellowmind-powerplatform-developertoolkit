@@ -1824,6 +1824,78 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
 
                 return fmfi.PowerPlatform.DeveloperToolkit.JsLib.Context.GetFormContext().data.process.getActiveProcess();
             },
+            GetActiveProcessName: function () {
+                /// <summary>
+                /// Returns the name of currently active BPF process on the form.
+                /// </summary>
+
+                var activeProcess = fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.BPF.GetActiveProcess();
+
+                if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(activeProcess))
+                    return activeProcess.getName();
+
+                return "";
+            },
+            GetActiveProcessID: function () {
+                /// <summary>
+                /// Returns the ID of currently active BPF process on the form.
+                /// </summary>
+
+                var activeProcess = fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.BPF.GetActiveProcess();
+
+                if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(activeProcess))
+                    return activeProcess.getId();
+
+                return null;
+            },
+            GetActiveProcessStages: function () {
+                /// <summary>
+                /// Returns collection of stages of currently active BPF process on the form.
+                /// </summary>
+
+                var activeProcess = fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.BPF.GetActiveProcess();
+
+                if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(activeProcess))
+                    return activeProcess.getStages();
+
+                return null;
+            },
+            GetActiveProcessCurrentStage: function () {
+                /// <summary>
+                /// Returns current stage of currently active BPF process on the form.
+                /// </summary>
+
+                var activeProcess = fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.BPF.GetActiveProcess();
+
+                if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(activeProcess))
+                    return activeProcess.getActiveStage();
+
+                return null;                
+            },            
+            GetActiveProcessCurrentStageName: function () {
+                /// <summary>
+                /// Returns name of current stage of currently active BPF process on the form.
+                /// </summary>
+
+                var currentStage = fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.BPF.GetActiveProcessCurrentStage();
+
+                if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(currentStage))
+                    return currentStage.getName();
+
+                return "";
+            },
+            GetActiveProcessCurrentStageID: function () {
+                /// <summary>
+                /// Returns ID of current stage of currently active BPF process on the form.
+                /// </summary>
+
+                var currentStage = fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.BPF.GetActiveProcessCurrentStage();
+
+                if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(currentStage))
+                    return currentStage.getId();
+
+                return null;                
+            },
             SetActiveProcess: function (processId, successCallBack, errorCallBack, saveChanges) {
                 /// <summary>
                 /// Sets active BPF process on the form.
@@ -1872,7 +1944,7 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
             }
         },
         CustomPage: {
-            OpenFromFormRibbon: function (entityName, entityId, customPageLogicalName, customPageType) {
+            OpenFromFormRibbon: function (entityName, entityId, customPageLogicalName, customPageType, widthInPercents, heightInPercents, dialogTitle) {
                 /// <summary>
                 /// Navigates to custom page from a form ribbon button.
                 /// </summary>
@@ -1885,8 +1957,17 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                 /// <param name="customPageLogicalName" type="string" required="true" >
                 ///  Logical name of the Custom Page that should be opened.
                 /// </param>
-                /// <param name="processId" type="string" required="true" >
+                /// <param name="customPageType" type="string" required="true" >
                 ///  Type of the Custom Page to open. Use enum fmfi.PowerPlatform.DeveloperToolkit.JsLib.Enums.CustomPageType.
+                /// </param>
+                /// <param name="widthInPercents" type="integer" required="false" >
+                ///  Width of the custom page to be shown in percents. If not given then a static value of 50% will be used for dialog and 500px will be used for side dialog.
+                /// </param>
+                /// <param name="heightInPercents" type="integer" required="false" >
+                ///  Height of the custom page to be shown in percents. If not given then no height will be determined.
+                /// </param>
+                 /// <param name="dialogTitle" type="string" required="false" >
+                ///  Custom title when type of the custom page is either a dialog or a side dialog.
                 /// </param>
 
                 if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(entityName))
@@ -1901,14 +1982,23 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                 if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(customPageType))
                     throw "UI.CustomPage.OpenFromFormRibbon: parameter 'customPageType' must be defined!";               
 
+                if (Array.isArray(entityId)) {
+                    entityId[0] = fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.RemoveParenthesisFromGUID(entityId[0]);
+                }
+                else {
+                    entityId = fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.RemoveParenthesisFromGUID(entityId);
+                }
+
                 var pageInput = {
                     pageType: "custom",
                     name: customPageLogicalName,
                     entityName: entityName,
                     recordId: entityId,
                 };
-
-                var navigationOptions = null;
+                
+                var navigationOptions = { target: 1 };
+                var widthGiven = !fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(widthInPercents);
+                var heightGiven = !fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(heightInPercents);
 
                 switch (customPageType) {
 
@@ -1917,11 +2007,47 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                         break;
 
                     case fmfi.PowerPlatform.DeveloperToolkit.JsLib.Enums.CustomPageType.DIALOG:
-                        navigationOptions = { target: 2, position: 1, width: { value: 50, unit: "%" } };
+                        navigationOptions.target = 2;
+                        navigationOptions.position = 1;
+                        if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(dialogTitle))
+                            navigationOptions.title = dialogTitle;
+
+                        if (widthGiven && heightGiven) {                            
+                            navigationOptions.width = { value: widthInPercents, unit: "%" };
+                            navigationOptions.height = { value: heightInPercents, unit: "%" };
+                        }
+                        else if (widthGiven && !heightGiven) {
+                            navigationOptions.width = { value: widthInPercents, unit: "%" };                            
+                        }
+                        else if (!widthGiven && heightGiven) {                            
+                            navigationOptions.width = { value: 50, unit: "%" };
+                            navigationOptions.height = { value: heightInPercents, unit: "%" };
+                        }
+                        else {
+                            navigationOptions.width = { value: 50, unit: "%" };
+                        }
                         break;
 
                     case fmfi.PowerPlatform.DeveloperToolkit.JsLib.Enums.CustomPageType.SIDEDIALOG:
-                        navigationOptions = { target: 2, position: 2, width: { value: 500, unit: "px" } };
+                        navigationOptions.target = 2;
+                        navigationOptions.position = 2;
+                        if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(dialogTitle))
+                            navigationOptions.title = dialogTitle;
+
+                        if (widthGiven && heightGiven) {
+                            navigationOptions.width = { value: widthInPercents, unit: "%" };
+                            navigationOptions.height = { value: heightInPercents, unit: "%" };
+                        }
+                        else if (widthGiven && !heightGiven) {
+                            navigationOptions.width = { value: widthInPercents, unit: "%" };
+                        }
+                        else if (!widthGiven && heightGiven) {
+                            navigationOptions.width = { value: 500, unit: "px" };
+                            navigationOptions.height = { value: heightInPercents, unit: "%" };
+                        }
+                        else {
+                            navigationOptions.width = { value: 500, unit: "px" };
+                        }
                         break;
 
                     default:
@@ -1929,29 +2055,34 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                         break;
                 }
 
-                Xrm.Navigation.navigateTo(pageInput, navigationOptions)
-                    .then(
-                        function () {
-                            fmfi.PowerPlatform.DeveloperToolkit.JsLib.Logger.Info("Custom page '" + customPageLogicalName + "' opened succesfully for entity '" + entityName + "' with id '" + entityId + "'.");
-                        }
-                    ).catch(
-                        function (error) {
-                            fmfi.PowerPlatform.DeveloperToolkit.JsLib.Logger.Info("Error occurred when opening custom page '" + customPageLogicalName + "' for entity '" + entityName + "' with id '" + entityId + "': " + error);
-                        }
-                    );
+                Xrm.Navigation.navigateTo(pageInput, navigationOptions, function () {
+                    fmfi.PowerPlatform.DeveloperToolkit.JsLib.Logger.Info("Custom page '" + customPageLogicalName + "' opened succesfully for entity '" + entityName + "' with id '" + entityId + "'.");
+                }, function (error) {
+                    fmfi.PowerPlatform.DeveloperToolkit.JsLib.Logger.Info("Error occurred when opening custom page '" + customPageLogicalName + "' for entity '" + entityName + "' with id '" + entityId + "': " + error);
+                });
             },
-            OpenFromGridRibbon: function (entityReferences, customPageLogicalName, customPageType) {
+            OpenFromGridRibbon: function (entityReferences, customPageLogicalName, customPageType, widthInPercents, heightInPercents, dialogTitle) {
                 /// <summary>
                 /// Navigates to custom page from a subgrid ribbon button.
                 /// </summary>
-                /// <param name="entityReferences" type="string" required="true" >
-                ///  List of selected records from the subgrid of the entity in which context the Custom Page will be opened.
+                /// <param name="entityReferences" type="array of entityreferences" required="true" >
+                ///  Selected record from the subgrid of the entity in which context the Custom Page will be opened. Eventhoug this is an array, only the first element will be used.
+                ///  If multiple records has been selected, an error is thrown. 
                 /// </param>
                 /// <param name="customPageLogicalName" type="string" required="true" >
                 ///  Logical name of the Custom Page that should be opened.
                 /// </param>
                 /// <param name="processId" type="string" required="true" >
                 ///  Type of the Custom Page to open. Use enum fmfi.PowerPlatform.DeveloperToolkit.JsLib.Enums.CustomPageType.
+                /// </param>
+                /// <param name="widthInPercents" type="integer" required="false" >
+                ///  Width of the custom page to be shown in percents. If not given then a static value of 50% will be used for dialog and 500px will be used for side dialog.
+                /// </param>
+                /// <param name="heightInPercents" type="integer" required="false" >
+                ///  Height of the custom page to be shown in percents. If not given then no height will be determined.
+                /// </param>
+                /// <param name="dialogTitle" type="string" required="false" >
+                ///  Custom title when type of the custom page is either a dialog or a side dialog.
                 /// </param>
 
                 if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(entityReferences))
@@ -1961,15 +2092,23 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                     throw "UI.CustomPage.OpenFromGridRibbon: parameter 'customPageLogicalName' must be defined!";
 
                 if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(customPageType))
-                    throw "UI.CustomPage.OpenFromGridRibbon: parameter 'customPageType' must be defined!";     
+                    throw "UI.CustomPage.OpenFromGridRibbon: parameter 'customPageType' must be defined!";   
+
+                if (entityReferences.length > 1) {
+                    var message = "Please select only one record to proceed.";
+                    fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.Notification.ShowFormNotification(message, fmfi.PowerPlatform.DeveloperToolkit.JsLib.Enums.FormNotification_Type.WARNING, 10);
+                    return;
+                }                
 
                 var pageInput = {
                     pageType: "custom",
                     name: customPageLogicalName,                    
-                    recordId: JSON.stringify(entityReferences),
+                    recordId: fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.RemoveParenthesisFromGUID(entityReferences[0].Id),
                 };
 
-                var navigationOptions = null;
+                navigationOptions = { target: 1 };
+                var widthGiven = !fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(widthInPercents);
+                var heightGiven = !fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(heightInPercents);
 
                 switch (customPageType) {
 
@@ -1978,11 +2117,47 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                         break;
 
                     case fmfi.PowerPlatform.DeveloperToolkit.JsLib.Enums.CustomPageType.DIALOG:
-                        navigationOptions = { target: 2, position: 1, width: { value: 50, unit: "%" } };
+                        navigationOptions.target = 2;
+                        navigationOptions.position = 1;
+                        if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(dialogTitle))
+                            navigationOptions.title = dialogTitle;
+
+                        if (widthGiven && heightGiven) {
+                            navigationOptions.width = { value: widthInPercents, unit: "%" };
+                            navigationOptions.height = { value: heightInPercents, unit: "%" };
+                        }
+                        else if (widthGiven && !heightGiven) {
+                            navigationOptions.width = { value: widthInPercents, unit: "%" };
+                        }
+                        else if (!widthGiven && heightGiven) {
+                            navigationOptions.width = { value: 50, unit: "%" };
+                            navigationOptions.height = { value: heightInPercents, unit: "%" };
+                        }
+                        else {
+                            navigationOptions.width = { value: 50, unit: "%" };
+                        }
                         break;
 
                     case fmfi.PowerPlatform.DeveloperToolkit.JsLib.Enums.CustomPageType.SIDEDIALOG:
-                        navigationOptions = { target: 2, position: 2, width: { value: 500, unit: "px" } };
+                        navigationOptions.target = 2;
+                        navigationOptions.position = 2;
+                        if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(dialogTitle))
+                            navigationOptions.title = dialogTitle;
+
+                        if (widthGiven && heightGiven) {
+                            navigationOptions.width = { value: widthInPercents, unit: "%" };
+                            navigationOptions.height = { value: heightInPercents, unit: "%" };
+                        }
+                        else if (widthGiven && !heightGiven) {
+                            navigationOptions.width = { value: widthInPercents, unit: "%" };
+                        }
+                        else if (!widthGiven && heightGiven) {
+                            navigationOptions.width = { value: 500, unit: "px" };
+                            navigationOptions.height = { value: heightInPercents, unit: "%" };
+                        }
+                        else {
+                            navigationOptions.width = { value: 500, unit: "px" };
+                        }
                         break;
 
                     default:
@@ -1990,17 +2165,11 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                         break;
                 }
 
-                Xrm.Navigation.navigateTo(pageInput, navigationOptions)
-                    .then(
-                        function () {
-                            fmfi.PowerPlatform.DeveloperToolkit.JsLib.Logger.Info("Custom page '" + customPageLogicalName + "' opened succesfully for entity '" + entityName + "' with id '" + entityId + "'.");
-                        }
-                    ).catch(
-                        function (error) {
-                            fmfi.PowerPlatform.DeveloperToolkit.JsLib.Logger.Info("Error occurred when opening custom page '" + customPageLogicalName + "' for entity references '" + JSON.stringify(entityReferences) + "': " + error);
-                        }
-                    );
-
+                Xrm.Navigation.navigateTo(pageInput, navigationOptions, function () {
+                    fmfi.PowerPlatform.DeveloperToolkit.JsLib.Logger.Info("Custom page '" + customPageLogicalName + "' opened succesfully for entity '" + entityName + "' with id '" + entityId + "'.");
+                }, function (error) {
+                    fmfi.PowerPlatform.DeveloperToolkit.JsLib.Logger.Info("Error occurred when opening custom page '" + customPageLogicalName + "' for entity references '" + JSON.stringify(entityReferences) + "': " + error);
+                });
             }
         }
     };
@@ -2025,7 +2194,23 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.Context = fmfi.PowerPlatform.Developer
             if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(executionContext))
                 throw "Unable to access formContext, make sure a global variable 'executionContext' is declared and execution context is passed to it during OnLoad event of the form!";
 
-            return executionContext.getFormContext();
+            // When functionalities executed from ribbon buttons require form context, we need to check if the global variable 'executionContext' is actually already the form context.
+            // Since there is no out-of-the-box functionality to check it, we need to make an educated guess
+            if (executionContext.getFormContext) {
+
+                // It's likely an execution context
+                return executionContext.getFormContext();
+
+            } else if (executionContext.getAttribute) {
+
+                // It's likely a form context already
+                return executionContext;
+
+            } else {
+
+                // Could not determine the context type
+                throw "Context.GetFormContext: type of parameter 'executionContext' is unknown!";
+            }            
         },
         GetGlobalContext: function () {
             /// <summary>
@@ -2171,10 +2356,49 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.CurrentUser = fmfi.PowerPlatform.Devel
         },
         GetUserRoles: function () {
             /// <summary>
-            /// Returns security roles assigned to current user.     
+            /// Returns security roles assigned to current user.
             /// </summary>
 
-            return fmfi.PowerPlatform.DeveloperToolkit.JsLib.CurrentUser.GetUserSettings().roles;
+            var roleNames = [];
+            fmfi.PowerPlatform.DeveloperToolkit.JsLib.CurrentUser.GetUserSettings().roles.forEach(function (role) {
+                roleNames.push(role.name);
+            });
+
+            return roleNames;            
+        },
+        HasRole: function (roleName) {
+            /// <summary>
+            /// Checks if the current user has a specific security role.
+            /// </summary>
+            /// <param name="roleName" type="string" required="true" >
+            ///  Name of the security role to check.
+            /// </param>  
+            if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(roleName))
+                throw "CurrentUser.HasRole: parameter 'roleName' must be defined!";
+            var roles = fmfi.PowerPlatform.DeveloperToolkit.JsLib.CurrentUser.GetUserRoles();
+
+            for (var i = 0; i < roles.length; i++) {
+                if (roles[i].toUpperCase() == roleName.toUpperCase())
+                    return true;
+            }            
+            
+            fmfi.PowerPlatform.DeveloperToolkit.JsLib.Logger.Warning("CurrentUser.HasRoles: systemuser " + fmfi.PowerPlatform.DeveloperToolkit.JsLib.CurrentUser.GetUserID() + " does not have security role " + roleName);
+            return false;
+        },
+        HasRoles: function (roleNames) {
+            /// <summary>
+            /// Checks if the current user has all specified security role.
+            /// </summary>
+            /// <param name="roleNames" type="string" required="true" >
+            ///  Names of the security roles to check separated by a comma.
+            /// </param>
+            if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(roleNames))
+                throw "CurrentUser.HasRoles: parameter 'roleNames' must be defined!";
+            var arrNames = roleNames.split(",");
+            for (var i = 0; i < arrNames.length; i++) {
+                if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.CurrentUser.HasRole(arrNames[i]))
+                    return false;
+            }
         }
     };
 }();
@@ -2569,6 +2793,9 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper = fmfi.PowerPlatform.DeveloperT
             /// </param>
 
             if (typeof param === 'undefined' || param === null)
+                return true;
+
+            if (typeof param === 'string' && param.length === 0)
                 return true;
 
             return false;

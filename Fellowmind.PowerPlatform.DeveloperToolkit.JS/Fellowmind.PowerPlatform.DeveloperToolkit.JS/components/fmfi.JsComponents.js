@@ -1,16 +1,18 @@
 /*jshint esversion: 11 */
 /// <reference path="../source/fmfi.PowerPlatform.DeveloperToolkit.JsLib.js" />
 
-///  Path to required JSLIb in same environment
-const JsLibMinPath = "/WebResources/fmfi_/Fellowmind.PowerPlatform.DeveloperToolkit.JS/fmfi.PowerPlatform.DeveloperToolkit.JsLib.min.js";
 /// Global execution context that the library requires and initialize it in the form OnLoad event.
-let executionContext;
+var executionContext;
 
 /// Namespacing used in FMFI Power Platform Developer Toolkit
 var fmfi = window.fmfi || {};
-let JsLib = fmfi.PowerPlatform?.DeveloperToolkit?.JsLib;
+var JsLib = fmfi.PowerPlatform?.DeveloperToolkit?.JsLib;
 fmfi.JsComponents = fmfi.JsComponents || {};
 
+///  Path to required JSLIb in same environment
+fmfi.JsComponents._JsLibMinPath = "/WebResources/fmfi_/Fellowmind.PowerPlatform.DeveloperToolkit.JS/fmfi.PowerPlatform.DeveloperToolkit.JsLib.min.js";
+///  Localization file name
+fmfi.JsComponents._LocalizationFileName = "fmfi_/Fellowmind.PowerPlatform.DeveloperToolkit.JS/strings/fmfi.JsComponents";
 
 /**
  * Contains shared functions of the JSComponent library
@@ -50,7 +52,7 @@ fmfi.JsComponents.Helpers = fmfi.JsComponents.Helpers || function () {
                 }
 
                 if (!JSLIBPromise) {
-                    JSLIBPromise = loadDependJS(JsLibMinPath).finally(() => {
+                    JSLIBPromise = loadDependJS(fmfi.JsComponents._JsLibMinPath).finally(() => {
                         JSLIBPromise = undefined;
                     });
                 }
@@ -95,11 +97,15 @@ fmfi.JsComponents.Helpers = fmfi.JsComponents.Helpers || function () {
                 try {
                     settings = JSON.parse(settingsJSON);
                 } catch (error) {
-                    throw Error('Error when parsing JSON. \nJSON must be inside single quation marks! \nExample: \'' + componentJSONModel + "\' \nInner exception: " + error);
+                    let throwError = Error('Error when parsing JSON. \nJSON must be inside single quation marks! \nExample: \'' + componentJSONModel);
+                    fmfi.JsComponents.Helpers.Common.ShowError(throwError);
+                    throw throwError;
                 }
 
                 if (JsLib.Helper.IsNullOrUndefined(settings) || (Array.isArray(JSON.parse(componentJSONModel)) && settings.length <= 0)) {
-                    throw Error('Settings array missing or empty from JSON. \nExample: \'' + componentJSONModel + "\'");
+                    let error = Error('Settings array missing or empty from JSON. \nExample: \'' + componentJSONModel + "\'");
+                    fmfi.JsComponents.Helpers.Common.ShowError(error);
+                    throw error;
                 }
                 return settings;
             },
@@ -131,6 +137,14 @@ fmfi.JsComponents.Helpers = fmfi.JsComponents.Helpers || function () {
                     detailsHeader += "Example: \'" + componentJSONModel + "\' \n";
                 }
                 Xrm.Navigation.openErrorDialog({ message: message, details: detailsHeader + errorDetail });
+            },
+            CalculateDialogDimension(text) {
+                let dimensions = { height: null, width: null };
+                if (!JsLib.Helper.IsNullOrUndefined(text) && (text.length > 100 || text.split("\n").length >= 3)) {
+                    let alertHeight = Math.max(((text.length / 70) * 20 * (text.split("\n").length + 1)) + 100 , 150);
+                    dimensions = { height: alertHeight, width: 450 };
+                }
+                return dimensions;
             }
         }
     };
@@ -404,7 +418,7 @@ fmfi.JsComponents.BPFSwitch = fmfi.JsComponents.BPFSwitch || function () {
         }
 
         if (JsLib.Helper.IsNullOrUndefined(settings.fieldSettings)) {
-            throw fmfi.JsComponents.Helpers.Common.CreateError("BPFValues missing or empty from the Settings JSON", component);
+            throw fmfi.JsComponents.Helpers.Common.CreateError("fieldSettings missing or empty from the Settings JSON", component);
         }
 
         if (JsLib.Helper.IsNullOrUndefined(settings.showIfValueNotInSettings)) {
@@ -512,10 +526,10 @@ fmfi.JsComponents.CopyFieldValue = fmfi.JsComponents.CopyFieldValue || function 
 
         attribute.fieldSettings.forEach(function (fieldset) {
             if (JsLib.Helper.IsNullOrUndefined(fieldset.sourceField)) {
-                throw fmfi.JsComponents.Helpers.Common.CreateError("fieldset.sourceField missing or empty from the Settings JSON", component);
+                throw fmfi.JsComponents.Helpers.Common.CreateError("fieldSettings.sourceField missing or empty from the Settings JSON", component);
             }
             if (JsLib.Helper.IsNullOrUndefined(fieldset.targetField)) {
-                throw fmfi.JsComponents.Helpers.Common.CreateError("targetField missing or empty from Settings the JSON", component);
+                throw fmfi.JsComponents.Helpers.Common.CreateError("fieldSettings.targetField missing or empty from Settings the JSON", component);
             }
             if (JsLib.Helper.IsNullOrUndefined(fieldset.overwriteValue)) {
                 fieldset.overwriteValue = true;
@@ -555,6 +569,8 @@ fmfi.JsComponents.CopyFieldValue = fmfi.JsComponents.CopyFieldValue || function 
 
             if ((JsLib.Helper.IsNullOrUndefined(parentRecord) || JsLib.Helper.IsNullOrUndefined(parentRecord[sourceField])) && JsLib.UI.Form.GetType() !== JsLib.Enums.FormType.CREATE) {
                 JsLib.UI.Field.SetValue(targetField, null);
+                return;
+            } else if (JsLib.Helper.IsNullOrUndefined(parentRecord) || JsLib.Helper.IsNullOrUndefined(parentRecord[sourceField])) {
                 return;
             }
 
@@ -656,7 +672,7 @@ fmfi.JsComponents.FormTabAndSectionVisibility = fmfi.JsComponents.FormTabAndSect
                     throw fmfi.JsComponents.Helpers.Common.CreateError(attribute.sourceField + " tabName parameter is missing or empty from the Settings JSON", component);
                 }
                 if (JsLib.Helper.IsNullOrUndefined(showsetting.sectionNames)) {
-                    attribute.fieldset.showsetting.sectionNames = [];
+                    showsetting.sectionNames = [];
                 }
             });
         });
@@ -726,15 +742,154 @@ fmfi.JsComponents.FormTabAndSectionVisibility = fmfi.JsComponents.FormTabAndSect
                 let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
 
                 settings.forEach(function (attribute) {
-                    const onChangeField = attribute.sourceField;
                     ValidateSetting(attribute);
-                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(onChangeField, function () {
+                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.sourceField, function () {
                         ShowTabsAndSections(attribute);
                     });
                     ShowTabsAndSections(attribute);
                 });
             }
         }
+    };
+}();
+
+/**
+ * Contains configurable helper functions
+ */
+fmfi.JsComponents.FieldHelpers = fmfi.JsComponents.FieldHelpers || function () {
+
+    /**
+     * Autosaves Form when field value changes
+     * @param {*} attribute One field from Settings array
+     */
+    const AutoSaveOnChange = function (attribute) {
+        JsLib.UI.Field.SetSubmitMode(attribute, JsLib.Enums.Field_SubmitModes.ALWAYS);
+        JsLib.Record.Save(undefined, function () {
+            JsLib.UI.Field.SetSubmitMode(attribute, JsLib.Enums.Field_SubmitModes.DIRTY);
+        }, function () { });
+    };
+
+    /**
+    * Autosaves Form when field value changes and then shows custom page.
+    * @param {*} attribute One object from Settings array
+    */
+    const OpenCustomPageOnChange = async function (attribute) {
+        JsLib.UI.Field.SetSubmitMode(attribute.targetField, JsLib.Enums.Field_SubmitModes.ALWAYS);
+        JsLib.Record.Save(undefined, function () {
+            JsLib.UI.CustomPage.OpenFromFormRibbon(JsLib.Record.GetEntityName(), JsLib.Record.GetId(), attribute.customPage, attribute.customPageType);
+            JsLib.UI.Field.SetSubmitMode(attribute.targetField, JsLib.Enums.Field_SubmitModes.DIRTY);
+        }, function () { });
+    };
+
+    return {
+        AutoSaveOnChange: {
+            /**
+            * Adds OnChange listeners to the fields and runs logic
+            * 
+            * Form OnLoad event. This is the ONLY event you should call from your form.
+            * Full namespace is required when called via form: fmfi.JsComponents.FieldHelpers.AutoSaveOnChange.OnLoad
+            * Remember to pass the execution context.
+            * 
+            * @param {*} initExecutionContext Execution context
+            * @param {String} settingsJSON Settings JSON from "Comma separated list of parameters that will be passed to the function"-box in string format. Settings schema should follow component.JSONModel schema.
+            */
+            OnLoad: async function (initExecutionContext, settingsJSON) {
+                const component = {
+                    name: "FieldHelpers.AutoSaveOnChange",
+                    JSONModel: '["FIELD_SCHEMA_NAME"]'
+                };
+
+                /**
+                * Validates component settings and adds default values
+                * @param {Object} attribute One setting from Settings array
+                */
+                const ValidateSetting = function (attribute) {
+                    if (JsLib.Helper.IsNullOrUndefined(attribute)) {
+                        throw fmfi.JsComponents.Helpers.Common.CreateError("fieldSchemaNames missing from Settings the JSON", component);
+                    }
+                };
+
+                if (!initExecutionContext)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass execution context as first parameter"!', component);
+                executionContext = initExecutionContext;
+                if (!settingsJSON)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must add settings JSON to "Comma separated list of parameters that will be passed to the function"-box!', component);
+                if (!JsLib) {
+                    await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
+                }
+                let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
+
+                settings.forEach(function (attribute) {
+                    ValidateSetting(attribute);
+                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute, function () {
+                        AutoSaveOnChange(attribute);
+                    });
+                });
+            }
+        },
+        OpenCustomPageOnChange: {
+            /**
+            * Adds OnChange listeners to the sourceFields and runs logic
+            * 
+            * Form OnLoad event. This is the ONLY event you should call from your form.
+            * Full namespace is required when called via form: fmfi.JsComponents.FieldHelpers.OpenCustomPageOnChange.OnLoad
+            * Remember to pass the execution context.
+            * 
+            * @param {*} initExecutionContext Execution context
+            * @param {String} settingsJSON Settings JSON from "Comma separated list of parameters that will be passed to the function"-box in string format. Settings schema should follow component.JSONModel schema.
+            */
+            OnLoad: async function (initExecutionContext, settingsJSON) {
+                const component = {
+                    name: "FieldHelpers.OpenCustomPageOnChange",
+                    JSONModel: '[{"targetField":"FIELD_SCHEMA_NAME", "customPage": "CUSTOM_PAGE_LOGICAL_NAME", "customPageType": "CUSTOM_PAGE_TYPE"}]'
+                };
+
+                if (!initExecutionContext)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass execution context as first parameter"!', component);
+                executionContext = initExecutionContext;
+                if (!settingsJSON)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must add settings JSON to "Comma separated list of parameters that will be passed to the function"-box!', component);
+                if (!JsLib) {
+                    await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
+                }
+
+                /**
+                * Validates component settings and adds default values
+                * @param {Object} attribute One setting from Settings array
+                */
+                const ValidateSetting = function (attribute) {
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.targetField)) {
+                        throw fmfi.JsComponents.Helpers.Common.CreateError("targetField missing from Settings the JSON", component);
+                    }
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.customPage)) {
+                        throw fmfi.JsComponents.Helpers.Common.CreateError("customPage missing from Settings the JSON", component);
+                    }
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.customPageType)) {
+                        attribute.customPageType = JsLib.Enums.CustomPageType.DIALOG;
+                    } else {
+                        if (attribute.customPageType.toLowerCase() === "dialog") {
+                            attribute.customPageType = JsLib.Enums.CustomPageType.DIALOG;
+                        } else if (attribute.customPageType.toLowerCase() === "inline") {
+                            attribute.customPageType = JsLib.Enums.CustomPageType.INLINE;
+                        } else if (attribute.customPageType.toLowerCase() === "sidedialog") {
+                            attribute.customPageType = JsLib.Enums.CustomPageType.SIDEDIALOG;
+                        } else {
+                            attribute.customPageType = JsLib.Enums.CustomPageType.DIALOG;
+                        }
+                    }
+                };
+
+                let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
+
+                settings.forEach(function (attribute) {
+                    ValidateSetting(attribute);
+                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.targetField, function () {
+                        OpenCustomPageOnChange(attribute);
+                    });
+                });
+            }
+        },
+
     };
 }();
 
@@ -775,7 +930,7 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
             }
 
             if (JsLib.Helper.IsNullOrUndefined(fieldset.choiceValuesToShow) || fieldset.choiceValuesToShow.length <= 0) {
-                throw fmfi.JsComponents.Helpers.Common.CreateError(attribute.sourceField + " choiceValuesToShow parameter is  missing or empty from the Settings JSON", component);
+                throw fmfi.JsComponents.Helpers.Common.CreateError(attribute.sourceField + " choiceValuesToShow parameter is missing or empty from the Settings JSON", component);
             } else {
                 fieldset.choiceValuesToShow = fieldset.choiceValuesToShow.map(a => JsLib.Helper.RemoveParenthesisFromGUID(a.toString()).toLowerCase());
             }
@@ -913,6 +1068,460 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
                     });
                     ShowChoiceValuesBasedOnFieldValue(attribute);
                 });
+            }
+        }
+    };
+}();
+
+/**
+ * Contains configurable functions to run Power Automate Flows 
+ */
+fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
+    const _RunFlowActionName = "fmfi_ExecuteHttpTriggerPowerAutomateFlow";
+    let gridControl;
+
+    /**
+     * Run flow by calling Dataverse action and waits for the answer
+     * @param {*} attribute One field from Settings array
+     * @param {*} selectedRecordRefs When calling from grid, selected record references
+     */
+    const RunFlowAndWaitAnswer = function (attribute, selectedRecordRefs) {
+        JsLib.Helper.ShowProgressBar(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ProgressBar"));
+        let body = {
+            userid: JsLib.Helper.RemoveParenthesisFromGUID(JsLib.CurrentUser.GetUserID()),
+            extra: attribute.extra
+        };
+
+        if (!JsLib.Helper.IsNullOrUndefined(selectedRecordRefs)) {
+            body.recordidarray = selectedRecordRefs.map(({ Id }) => Id);
+        } else {
+            body.recordid = JsLib.Helper.RemoveParenthesisFromGUID(JsLib.Record.GetId());
+        }
+
+        if (!JsLib.Helper.IsNullOrUndefined(gridControl)) {
+            body.tablename = gridControl.getEntityName();
+        }  else {
+            body.tablename = JsLib.Record.GetEntityName();
+        }
+
+        let ActionParameters = [
+            {
+                name: "ConfigurationRowName",
+                type: JsLib.Enums.EntityDataModel_PrimitiveType.STRING,
+                value: attribute.configurationRowName,
+                category: JsLib.Enums.EntityDataModel_StructuralType.PRIMITIVETYPE
+            },
+            {
+                name: "Body",
+                type: JsLib.Enums.EntityDataModel_PrimitiveType.STRING,
+                value: JSON.stringify(body),
+                category: JsLib.Enums.EntityDataModel_StructuralType.PRIMITIVETYPE
+            }
+        ];
+
+        if (!JsLib.Helper.IsNullOrUndefined(attribute.configurationTable)) {
+            ActionParameters.push({
+                name: "ConfigurationTable",
+                type: JsLib.Enums.EntityDataModel_PrimitiveType.STRING,
+                value: attribute.configurationTable,
+                category: JsLib.Enums.EntityDataModel_StructuralType.PRIMITIVETYPE
+            });
+        }
+
+        JsLib.WebAPI.Requests.ExecuteAction(_RunFlowActionName, undefined, undefined, ActionParameters, function (response) {
+            if (JsLib.Helper.IsNullOrUndefined(response) || !response.ok) {
+                ProcessErrorResponse(response);
+                return;
+            }
+
+            response.json().then(function (responseBody) {
+                let respObj;
+                if (JsLib.Helper.IsNullOrUndefined(responseBody) || JsLib.Helper.IsNullOrUndefined(responseBody.Message)) {
+                    ProcessErrorResponse(response);
+                    return;
+                }
+
+                try {
+                    respObj = JSON.parse(responseBody.Message);
+                } catch (error) {
+                    ProcessErrorResponse(error);
+                    return;
+                }
+
+                if (JsLib.Helper.IsNullOrUndefined(respObj)) {
+                    ProcessErrorResponse(response);
+                    return;
+                }
+
+                ProcessSuccessResponse(respObj ?? {});
+
+            });
+        }, ProcessErrorResponse);
+    };
+
+    /**
+     * Handles success response from action/flow
+     * @param {*} response 
+     * @returns early if handled error
+     */
+    const ProcessSuccessResponse = function (response) {
+        let success = response.success ?? response.Success ?? true;
+        let message = response.message ?? response.Message;
+        let table = response.tablename ?? response.tableName ?? response.table ?? response.Table ?? response.Entity ?? response.entity;
+        let rowId = response.recordid ?? response.RowGuid ?? response.Rowguid ?? response.rowGuid ?? response.rowguid ?? response.recordId ?? response.recordID;
+
+        if (success === "False" || success === "false" || success === false) {
+            let errorResponse = { message: message ?? JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.DefaultError") };
+            ProcessErrorResponse(errorResponse);
+            return;
+        }
+
+        let alertDimensions = fmfi.JsComponents.Helpers.Common.CalculateDialogDimension(message);
+
+        JsLib.Helper.CloseProgressBar();
+
+        if (!JsLib.Helper.IsNullOrUndefined(message) && !JsLib.Helper.IsNullOrUndefined(table) && !JsLib.Helper.IsNullOrUndefined(rowId)) {
+            // Flow returned message, table and rowId
+            JsLib.UI.Dialogue.ShowAlert(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ResponseHeader"),
+                JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.Ok"), message, alertDimensions.height, alertDimensions.width, function () {
+                    JsLib.UI.Form.OpenFormExistingRecord(table, rowId);
+                });
+        }
+        else if (!JsLib.Helper.IsNullOrUndefined(table) && !JsLib.Helper.IsNullOrUndefined(rowId)) {
+            // Flow returned table and rowId
+            JsLib.UI.Form.OpenFormExistingRecord(table, rowId);
+        }
+        else if (!JsLib.Helper.IsNullOrUndefined(executionContext)) {
+            // Flow was started from form context
+            JsLib.UI.Form.Refresh(false, function () {
+                message = message ?? JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.DefaultSuccess");
+                JsLib.UI.Dialogue.ShowAlert(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ResponseHeader"),
+                    JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.Ok"), message, alertDimensions.height, alertDimensions.width);
+            }, function () { });
+        } 
+        else if (!JsLib.Helper.IsNullOrUndefined(gridControl)) {
+            //Flow was started from grid context
+            gridControl.refresh();
+            message = message ?? JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.DefaultSuccess");
+            JsLib.UI.Dialogue.ShowAlert(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ResponseHeader"),
+                JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.Ok"), message, alertDimensions.height, alertDimensions.width);
+        }
+        else {
+            //Fall-back
+            message = message ?? JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.DefaultSuccess");
+            JsLib.UI.Dialogue.ShowAlert(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ResponseHeader"),
+                JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.Ok"), message, alertDimensions.height, alertDimensions.width);
+        }
+    };
+
+    /**
+     * Handles error response from action/flow
+     * @param {*} response 
+     */
+    const ProcessErrorResponse = function (response) {
+        JsLib.Helper.CloseProgressBar();
+        JsLib.UI.Dialogue.ShowAlert(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.Error"),
+            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.Ok"), response.message ?? response);
+    };
+
+    return {
+        FormOnFieldValueChange: {
+            /**
+            * Adds OnChange listeners to the fields and runs logic
+            * 
+            * Form OnLoad event. This is the ONLY event you should call from your form.
+            * Full namespace is required when called via form: fmfi.JsComponents.RunFlow.FormOnFieldValueChange.OnLoad
+            * Remember to pass the execution context.
+            * 
+            * @param {*} initExecutionContext Execution context
+            * @param {String} settingsJSON Settings JSON from "Comma separated list of parameters that will be passed to the function"-box in string format. Settings schema should follow component.JSONModel schema.
+            */
+            OnLoad: async function (initExecutionContext, settingsJSON) {
+                const component = {
+                    name: "RunFlow.FormOnFieldValueChange",
+                    JSONModel: '[{"targetField":"FIELD_SCHEMA_NAME", "configurationTable": "CONFIGURATION_TABLE_NAME", "configurationRowName": "CONFIGURATION_ROW_NAME", "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "extra": "EXTRA"}]'
+                };
+
+                /**
+                * Validates component settings and adds default values
+                * @param {Object} attribute One setting from Settings array
+                */
+                const ValidateSetting = function (attribute) {
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.configurationRowName)) {
+                        throw fmfi.JsComponents.Helpers.Common.CreateError("configurationRowName missing from Settings the JSON", component);
+                    }
+
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.configurationTable)) {
+                        attribute.configurationTable = null;
+                    }
+
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.confirmationText)) {
+                        attribute.confirmationText = JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationText");
+                    }
+
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.askConfirmation)) {
+                        attribute.askConfirmation = true;
+                    }
+                };
+
+                if (!initExecutionContext)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass execution context as first parameter"!', component);
+                executionContext = initExecutionContext;
+                if (!settingsJSON)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must add settings JSON to "Comma separated list of parameters that will be passed to the function"-box!', component);
+                if (!JsLib) {
+                    await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
+                }
+                let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
+
+                settings.forEach(function (attribute) {
+                    ValidateSetting(attribute);
+                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.targetField, function () {
+                        JsLib.UI.Field.SetSubmitMode(attribute.targetField, JsLib.Enums.Field_SubmitModes.ALWAYS);
+                        JsLib.Record.Save(undefined, function () {
+                            JsLib.UI.Field.SetSubmitMode(attribute.targetField, JsLib.Enums.Field_SubmitModes.DIRTY);
+                            if (attribute.askConfirmation) {
+                                JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationHeader"),
+                                    JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
+                                    JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, function (result) {
+                                        if (!result.confirmed) return;
+                                        try {
+                                            RunFlowAndWaitAnswer(attribute);
+                                        } catch (error) {
+                                            ProcessErrorResponse(error);
+                                        }
+                                    });
+                            } else {
+                                try {
+                                    RunFlowAndWaitAnswer(attribute);
+                                } catch (error) {
+                                    ProcessErrorResponse(error);
+                                }
+                            }
+                        }, function () { });
+                    });
+                });
+            }
+        },
+        Ribbon: {
+            /**
+            * Run flow on form ribbon context
+            * 
+            * Ribbon button command
+            * Full namespace is required when called via form: fmfi.JsComponents.RunFlow.Ribbon.FormRunFlow
+            * Remember to add command parameters.
+            * 
+            * @param {*} initExecutionContext Execution context
+            * @param {String} settingsJSON Commands second parameter Settings JSON. Settings schema should follow component.JSONModel schema.
+            */
+            FormRunFlow: async function (initFormContext, settingsJSON) {
+                const component = {
+                    name: "RunFlow.FormRunFlow",
+                    JSONModel: '{"configurationTable": "CONFIGURATION_TABLE_NAME", "configurationRowName": "CONFIGURATION_ROW_NAME", "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "extra": "EXTRA"}'
+                };
+
+                /**
+                * Validates component settings and adds default values
+                * @param {Object} attribute One setting from Settings array
+                */
+                const ValidateSetting = function (attribute) {
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.configurationRowName)) {
+                        throw fmfi.JsComponents.Helpers.Common.CreateError("configurationRowName missing from Settings the JSON", component);
+                    }
+
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.configurationTable)) {
+                        attribute.configurationTable = null;
+                    }
+
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.confirmationText)) {
+                        attribute.confirmationText = JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationText");
+                    }
+
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.askConfirmation)) {
+                        attribute.askConfirmation = true;
+                    }
+                };
+                executionContext = initFormContext;
+                if (!executionContext)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass Primary control as first parameter"!', component);
+
+                if (!settingsJSON)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass settings JSON as second parameter!', component);
+                if (!JsLib) {
+                    await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
+                }
+                let attribute = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
+
+                ValidateSetting(attribute);
+                JsLib.Record.Save(undefined, function () {
+                    if (attribute.askConfirmation) {
+                        JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationHeader"),
+                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
+                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, function (result) {
+                                if (!result.confirmed) return;
+                                try {
+                                    RunFlowAndWaitAnswer(attribute);
+                                } catch (error) {
+                                    ProcessErrorResponse(error);
+                                }
+                            });
+                    } else {
+                        try {
+                            RunFlowAndWaitAnswer(attribute);
+                        } catch (error) {
+                            ProcessErrorResponse(error);
+                        }
+                    }
+                }, function () { });
+            },
+            /**
+            * Run flow on subgrid context
+            * 
+            * Ribbon button command
+            * Full namespace is required when called via form: fmfi.JsComponents.RunFlow.Ribbon.SubGridRunFlow
+            * Remember to add command parameters.
+            * 
+            * @param {*} initExecutionContext Primary control
+            * @param {*} selectedRecordRefs Selected record references
+            * @param {String} settingsJSON  Settings JSON. Settings schema should follow component.JSONModel schema.
+            */
+            SubGridRunFlow: async function (initFormContext, selectedRecordRefs, settingsJSON) {
+                const component = {
+                    name: "RunFlow.FormRunFlow",
+                    JSONModel: '{"configurationTable": "CONFIGURATION_TABLE_NAME", "configurationRowName": "CONFIGURATION_ROW_NAME", "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "extra": "EXTRA"}'
+                };
+
+                /**
+                * Validates component settings and adds default values
+                * @param {Object} attribute One setting from Settings array
+                */
+                const ValidateSetting = function (attribute) {
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.configurationRowName)) {
+                        throw fmfi.JsComponents.Helpers.Common.CreateError("configurationRowName missing from Settings the JSON", component);
+                    }
+
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.configurationTable)) {
+                        attribute.configurationTable = null;
+                    }
+
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.confirmationText)) {
+                        attribute.confirmationText = JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationText");
+                    }
+
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.askConfirmation)) {
+                        attribute.askConfirmation = true;
+                    }
+                };
+                executionContext = initFormContext;
+                if (!executionContext)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass primary control as first parameter"!', component);
+                if (!selectedRecordRefs)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass selectedRecordRefs as second parameter"!', component);
+                if (!settingsJSON)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass settings JSON as third parameter!', component);
+                if (!JsLib) {
+                    await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
+                }
+                let attribute = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
+
+                
+                ValidateSetting(attribute);
+
+                JsLib.Record.Save(undefined, function () {
+                    if (attribute.askConfirmation) {
+                        JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationHeader"),
+                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
+                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, function (result) {
+                                if (!result.confirmed) return;
+                                try {
+                                    RunFlowAndWaitAnswer(attribute, selectedRecordRefs);
+                                } catch (error) {
+                                    ProcessErrorResponse(error);
+                                }
+                            });
+                    } else {
+                        try {
+                            RunFlowAndWaitAnswer(attribute, selectedRecordRefs);
+                        } catch (error) {
+                            ProcessErrorResponse(error);
+                        }
+                    }
+                }, function () { });
+
+            },
+            /**
+            * Run flow on grid ribbon context
+            * 
+            * Ribbon button command
+            * Full namespace is required when called via form: fmfi.JsComponents.RunFlow.Ribbon.GridRunFlow
+            * Remember to add command parameters.
+            * 
+            * @param {*} initGridControl Primary control
+            * @param {*} selectedRecordRefs Selected record reference
+            * @param {String} settingsJSON Settings JSON. Settings schema should follow component.JSONModel schema.
+            */
+            GridRunFlow: async function (initGridControl, selectedRecordRefs, settingsJSON) {
+                const component = {
+                    name: "RunFlow.FormRunFlow",
+                    JSONModel: '{"configurationTable": "CONFIGURATION_TABLE_NAME", "configurationRowName": "CONFIGURATION_ROW_NAME", "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "extra": "EXTRA"}'
+                };
+
+                /**
+                * Validates component settings and adds default values
+                * @param {Object} attribute One setting from Settings array
+                */
+                const ValidateSetting = function (attribute) {
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.configurationRowName)) {
+                        throw fmfi.JsComponents.Helpers.Common.CreateError("configurationRowName missing from Settings the JSON", component);
+                    }
+
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.configurationTable)) {
+                        attribute.configurationTable = null;
+                    }
+
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.confirmationText)) {
+                        attribute.confirmationText = JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationText");
+                    }
+
+                    if (JsLib.Helper.IsNullOrUndefined(attribute.askConfirmation)) {
+                        attribute.askConfirmation = true;
+                    }
+                };
+                gridControl = initGridControl;
+                
+
+                if (!gridControl)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass Primary Control as first parameter"!', component);
+                if (!selectedRecordRefs)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass selectedRecordRefs as second parameter"!', component);
+                if (!settingsJSON)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass settings JSON as third parameter!', component);
+                if (!JsLib) {
+                    await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
+                }
+                let attribute = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
+
+                ValidateSetting(attribute);
+
+                if (attribute.askConfirmation) {
+                    JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationHeader"),
+                        JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
+                        JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, function (result) {
+                            if (!result.confirmed) return;
+                            try {
+                                RunFlowAndWaitAnswer(attribute, selectedRecordRefs);
+                            } catch (error) {
+                                ProcessErrorResponse(error);
+                            }
+
+                        });
+                } else {
+                    try {
+                        RunFlowAndWaitAnswer(attribute, selectedRecordRefs);
+                    } catch (error) {
+                        ProcessErrorResponse(error);
+                    }
+                }
             }
         }
     };
