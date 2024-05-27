@@ -57,6 +57,7 @@ export class Slider implements ComponentFramework.StandardControl<IInputs, IOutp
      */
     public updateView(context: ComponentFramework.Context<IInputs>): void {
         // Add code to update control view
+        const isDisabled = context.mode.isControlDisabled;
         
         const props = {
             onValueChange: this.onValueChange.bind(this),
@@ -68,7 +69,8 @@ export class Slider implements ComponentFramework.StandardControl<IInputs, IOutp
             isRanged: this.isRanged,
             originFromZero: this.originFromZero,
             stepValue: this.stepValue,
-            color: this.color
+            color: this.color,
+            isDisabled
         };
         ReactDOM.render(React.createElement(InputComponent, props), this.container);
     }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="Fellowmind" constructor="CustomDatePicker" version="0.0.1" display-name-key="FM Custom Date Picker" description-key="Datepicker with YYYY-MM and MM-dd date formats." control-type="standard">
+  <control namespace="Fellowmind" constructor="CustomDatePicker" version="1.0.0" display-name-key="FM Custom Date Picker" description-key="Datepicker with YYYY-MM and MM-dd date formats." control-type="standard">
     <property name="DateString"  display-name-key="DateString" description-key="field_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true" />
         <property name="YearsStart" display-name-key="YearsStart" description-key="The lowest selectable year e.g. 1980" of-type="Whole.None" usage="input" required="true" />
         <property name="YearsEnd" display-name-key="YearsEnd" description-key="The highest selectable year e.g. 3080" of-type="Whole.None" usage="input" required="true" />

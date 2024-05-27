@@ -141,7 +141,7 @@ fmfi.JsComponents.Helpers = fmfi.JsComponents.Helpers || function () {
             CalculateDialogDimension(text) {
                 let dimensions = { height: null, width: null };
                 if (!JsLib.Helper.IsNullOrUndefined(text) && (text.length > 100 || text.split("\n").length >= 3)) {
-                    let alertHeight = Math.max(((text.length / 70) * 20 * (text.split("\n").length + 1)) + 100 , 150);
+                    let alertHeight = Math.max(((text.length / 70) * 20 * (text.split("\n").length + 1)) + 100, 150);
                     dimensions = { height: alertHeight, width: 450 };
                 }
                 return dimensions;
@@ -451,7 +451,7 @@ fmfi.JsComponents.BPFSwitch = fmfi.JsComponents.BPFSwitch || function () {
 
         let shouldBPFBeVisible = false;
         sourceFieldValueAsArray.every(function (value) {
-            if (!JsLib.Helper.IsNullOrUndefined(settings.fieldSettings[value]) && (!currentBPF.getId() || currentBPF.getId().toLowerCase() !== settings.fieldSettings[value])) {
+            if (!JsLib.Helper.IsNullOrUndefined(settings.fieldSettings[value]) && (JsLib.Helper.IsNullOrUndefined(currentBPF) || !currentBPF.getId() || currentBPF.getId().toLowerCase() !== settings.fieldSettings[value])) {
                 if (JsLib.UI.Form.IsDirty()) {
                     JsLib.Record.Save(undefined, function () {
                         JsLib.UI.BPF.SetActiveProcess(settings.fieldSettings[value]);
@@ -461,7 +461,7 @@ fmfi.JsComponents.BPFSwitch = fmfi.JsComponents.BPFSwitch || function () {
                 }
                 shouldBPFBeVisible = true;
                 return false;
-            } else if (!JsLib.Helper.IsNullOrUndefined(settings.fieldSettings[value]) && (!currentBPF.getId() || currentBPF.getId().toLowerCase() === settings.fieldSettings[value])) {
+            } else if (!JsLib.Helper.IsNullOrUndefined(settings.fieldSettings[value]) && !JsLib.Helper.IsNullOrUndefined(currentBPF) && (!currentBPF.getId() || currentBPF.getId().toLowerCase() === settings.fieldSettings[value])) {
                 shouldBPFBeVisible = true;
                 return false;
             }
@@ -696,7 +696,7 @@ fmfi.JsComponents.FormTabAndSectionVisibility = fmfi.JsComponents.FormTabAndSect
                 const tabName = showsetting.tabName;
                 if (visibility) {
                     tabsToSetVisible.push(tabName);
-                } else {
+                } else if (showsetting.sectionNames.length === 0) {
                     tabsToHide.push(tabName);
                 }
                 showsetting.sectionNames.forEach(function (sectionName) {
@@ -905,7 +905,7 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
     * @param {Object} attribute One setting from Settings array
     * @param {Object} component Details of the component
     */
-    const ValidateSettingShowChoiceValuesBasedOnFieldValue = function (attribute, component) {
+    const ValidateSettingShowChoiceValuesBasedOnFieldValue = async function (attribute, component) {
         if (JsLib.Helper.IsNullOrUndefined(attribute.sourceField)) {
             throw fmfi.JsComponents.Helpers.Common.CreateError("sourceField missing from the Settings JSON", component);
         }
@@ -920,6 +920,10 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
 
         if (JsLib.Helper.IsNullOrUndefined(attribute.showAlwaysCurrentValue)) {
             attribute.showAlwaysCurrentValue = true;
+        }
+
+        if (JsLib.Helper.IsNullOrUndefined(attribute.clearChildValueOnParentChange)) {
+            attribute.clearChildValueOnParentChange = true;
         }
 
         attribute.fieldSettings.forEach(function (fieldset) {
@@ -937,18 +941,20 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
         });
     };
 
+
     /**
      * Shows only choice values that are defined in settings.
-     * @param {Object} attribute One setting from Settings array
+     * @param {*} attribute One setting from Settings array
+     * @param {*} isOnChange Is triggering event OnChange
      */
-    const ShowChoiceValuesBasedOnFieldValue = function (attribute) {
+    const ShowChoiceValuesBasedOnFieldValue = async function (attribute, isOnChange) {
         const choiceControls = JsLib.UI.Field.GetField(attribute.targetField, true)?.controls;
-        if (!_choiceValueCache.choiceField) {
-            _choiceValueCache.choiceField = JsLib.UI.Optionset.GetOptions(attribute.targetField);
-        } else if (_choiceValueCache.choiceField) {
+        if (!_choiceValueCache[attribute.targetField]) {
+            _choiceValueCache[attribute.targetField] = JsLib.UI.Optionset.GetOptions(attribute.targetField);
+        } else if (_choiceValueCache[attribute.targetField]) {
             choiceControls.forEach(function (control) {
                 control.clearOptions();
-                _choiceValueCache.choiceField.forEach(function (choice) {
+                _choiceValueCache[attribute.targetField].forEach(function (choice) {
                     control.addOption(choice);
                 });
             });
@@ -958,14 +964,19 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
             if (set.fieldValues.some(item => sourceFieldValueAsArray.includes(item))) {
                 choiceControls.forEach(function (control) {
                     let options = JsLib.UI.Optionset.GetOptions(attribute.targetField);
+                    let targetFieldValueAsArray = fmfi.JsComponents.Helpers.Common.ConvertFieldValueToStringArray(JsLib.UI.Field.GetValue(attribute.targetField));
                     options.forEach(function (choiceValue) {
-                        if (JsLib.UI.Field.GetValue(attribute.targetField) && JsLib.UI.Field.GetValue(attribute.targetField).toString() === choiceValue.value && attribute.showAlwaysCurrentValue) {
+                        if (targetFieldValueAsArray.length > 0 && targetFieldValueAsArray.includes(choiceValue.value.toString()) && attribute.showAlwaysCurrentValue && !(isOnChange && attribute.clearChildValueOnParentChange)) {
                             return;
                         } else if (choiceValue && !set.choiceValuesToShow.includes(choiceValue.value.toString())) {
                             control.removeOption(choiceValue.value);
                         }
                     });
                 });
+            }
+            if (JsLib.UI.Field.GetValue(attribute.targetField) && isOnChange && attribute.clearChildValueOnParentChange) {
+                JsLib.UI.Field.SetValue(attribute.targetField, null);
+                JsLib.UI.Field.TriggerOnChange(attribute.targetField);
             }
         });
     };
@@ -975,7 +986,7 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
     * @param {Object} attribute One setting from Settings array
     * @param {Object} component Details of the component
     */
-    const ValidateSettingHideChoiceValuesIfNotCurrentValue = function (attribute, component) {
+    const ValidateSettingHideChoiceValuesIfNotCurrentValue = async function (attribute, component) {
         if (JsLib.Helper.IsNullOrUndefined(attribute.targetField)) {
             throw fmfi.JsComponents.Helpers.Common.CreateError("targetField missing from Settings JSON", component);
         }
@@ -991,11 +1002,12 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
      * Hides choice value provided in settings if its not fields current value
      * @param {Object} attribute One setting from Settings array 
      */
-    const HideChoiceValuesIfNotCurrentValue = function (attribute) {
+    const HideChoiceValuesIfNotCurrentValue = async function (attribute) {
         const choiceControls = JsLib.UI.Field.GetField(attribute.targetField, true)?.controls;
         choiceControls.forEach(function (control) {
             attribute.choiceValuesToHide.forEach(function (choiceValue) {
-                if (choiceValue && (JsLib.Helper.IsNullOrUndefined(JsLib.UI.Field.GetValue(attribute.targetField)) || JsLib.UI.Field.GetValue(attribute.targetField).toString() !== choiceValue)) {
+                let targetFieldValueAsArray = fmfi.JsComponents.Helpers.Common.ConvertFieldValueToStringArray(JsLib.UI.Field.GetValue(attribute.targetField));
+                if (choiceValue && (targetFieldValueAsArray.length === 0 || !targetFieldValueAsArray.includes(choiceValue.toString()))) {
                     control.removeOption(Number(choiceValue));
                 }
             });
@@ -1049,7 +1061,7 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
             OnLoad: async function (initExecutionContext, settingsJSON) {
                 const component = {
                     name: "ChoiceManipulator.ShowChoiceValuesBasedOnFieldValue",
-                    JSONModel: '[{"sourceField": "FIELD_SCHEMA_NAME", "targetField":"FIELD_SCHEMA_NAME", "fieldSettings": [{"fieldValues": ["FIELD_VALUE"], "choiceValuesToShow": ["CHOICE_VALUE"]}], "showAlwaysCurrentValue": true }]'
+                    JSONModel: '[{"sourceField": "FIELD_SCHEMA_NAME", "targetField":"FIELD_SCHEMA_NAME", "fieldSettings": [{"fieldValues": ["FIELD_VALUE"], "choiceValuesToShow": ["CHOICE_VALUE"]}], "showAlwaysCurrentValue": true, "clearChildValueOnParentChange": true }]'
                 };
 
                 if (!initExecutionContext)
@@ -1064,9 +1076,9 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
                 settings.forEach(function (attribute) {
                     ValidateSettingShowChoiceValuesBasedOnFieldValue(attribute);
                     JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.sourceField, function () {
-                        ShowChoiceValuesBasedOnFieldValue(attribute);
+                        ShowChoiceValuesBasedOnFieldValue(attribute, true);
                     });
-                    ShowChoiceValuesBasedOnFieldValue(attribute);
+                    ShowChoiceValuesBasedOnFieldValue(attribute, false);
                 });
             }
         }
@@ -1100,7 +1112,7 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
 
         if (!JsLib.Helper.IsNullOrUndefined(gridControl)) {
             body.tablename = gridControl.getEntityName();
-        }  else {
+        } else {
             body.tablename = JsLib.Record.GetEntityName();
         }
 
@@ -1198,7 +1210,7 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
                 JsLib.UI.Dialogue.ShowAlert(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ResponseHeader"),
                     JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.Ok"), message, alertDimensions.height, alertDimensions.width);
             }, function () { });
-        } 
+        }
         else if (!JsLib.Helper.IsNullOrUndefined(gridControl)) {
             //Flow was started from grid context
             gridControl.refresh();
@@ -1424,7 +1436,7 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
                 }
                 let attribute = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
 
-                
+
                 ValidateSetting(attribute);
 
                 JsLib.Record.Save(undefined, function () {
@@ -1488,7 +1500,7 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
                     }
                 };
                 gridControl = initGridControl;
-                
+
 
                 if (!gridControl)
                     throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass Primary Control as first parameter"!', component);

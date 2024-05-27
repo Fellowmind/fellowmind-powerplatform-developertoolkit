@@ -158,6 +158,9 @@ export class CustomDatePicker implements ComponentFramework.StandardControl<IInp
 
 	public updateView(context: ComponentFramework.Context<IInputs>): void
 	{
+		const isDisabled = context.mode.isControlDisabled || !context.parameters.DateString.security?.editable;
+		this.firstSelectElement.disabled = isDisabled;
+		this.secondSelectElement.disabled = isDisabled;
 		this.baseDate = context.parameters.DateString.raw ? context.parameters.DateString.raw : "";
 	}
 

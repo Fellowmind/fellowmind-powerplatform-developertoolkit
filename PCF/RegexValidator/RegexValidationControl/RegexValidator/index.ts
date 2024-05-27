@@ -117,6 +117,13 @@ export class RegexValidator implements ComponentFramework.StandardControl<IInput
 	 */
 	public updateView(context: ComponentFramework.Context<IInputs>): void
 	{
+		const isDisabled = context.mode.isControlDisabled || !context.parameters.textValueToProcess.security?.editable;
+		if (isDisabled) {
+			this.objInputElement.setAttribute("disabled", "");
+		} else {
+			this.objInputElement.removeAttribute("disabled");
+		}
+
 		// storing the latest context from the control
 		this.objContext = context;
 	}

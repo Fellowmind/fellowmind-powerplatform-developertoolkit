@@ -55,8 +55,17 @@ export class ChoiceButtons implements ComponentFramework.StandardControl<IInputs
      */
     public updateView(context: ComponentFramework.Context<IInputs>): void
     {
+        const isDisabled = context.mode.isControlDisabled || !context.parameters.Optionset.security?.editable;
+
         // Add code to update control view
-        const props = { optionset: context.parameters.Optionset.attributes?.Options, onOptionsetChange: this.onOptionsetChange.bind(this), currentValue: context.parameters.Optionset.raw, primaryButtonBackrground: (context as IContext).theming.buttons.button01primary.backgroundColor, secondaryButtonBackground: (context as IContext).theming.buttons.button01secondary.backgroundColor };
+        const props = { 
+            optionset: context.parameters.Optionset.attributes?.Options,
+            onOptionsetChange: this.onOptionsetChange.bind(this),
+            currentValue: context.parameters.Optionset.raw,
+            primaryButtonBackrground: (context as IContext).theming.buttons.button01primary.backgroundColor,
+            secondaryButtonBackground: (context as IContext).theming.buttons.button01secondary.backgroundColor,
+            isDisabled
+        };
         //@ts-ignore
 		ReactDOM.render(React.createElement(ChoiceButtonss, props), this.container);
     }

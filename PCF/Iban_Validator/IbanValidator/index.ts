@@ -43,8 +43,10 @@ export class IbanValidator implements ComponentFramework.StandardControl<IInputs
     {
         // Add code to update control view
         const { ibanAccountNumber } = context.parameters
+        
+        const isDisabled = context.mode.isControlDisabled;
 
-        const props = { ibanAccountNumber: ibanAccountNumber.raw || "", context, onIbanChange: this.onIbanChange.bind(this), setIban: this.setIban.bind(this) };
+        const props = { ibanAccountNumber: ibanAccountNumber.raw || "", context, onIbanChange: this.onIbanChange.bind(this), setIban: this.setIban.bind(this), isDisabled };
 
         ReactDOM.render(React.createElement(IbanInput, props), this.container); 
     }

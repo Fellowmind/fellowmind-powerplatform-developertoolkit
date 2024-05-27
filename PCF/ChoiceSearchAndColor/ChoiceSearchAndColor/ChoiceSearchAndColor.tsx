@@ -14,11 +14,12 @@ interface IChoiceSearchAndColorComponentProps {
   options: IOptionSetOption[];
   onValueChange: (value: number) => void;
   currentValue: number; 
-  displayColors: number | boolean | null
+  displayColors: number | boolean | null;
+  isDisabled: boolean | null;
 }
 
 const ChoiceSearchAndColorComponent = (props: IChoiceSearchAndColorComponentProps) => {
-  const { options, onValueChange, currentValue, displayColors } = props;
+  const { options, onValueChange, currentValue, displayColors, isDisabled } = props;
   const [renderedOptions, setRenderedOptions] = useState<IOptionSetOption[]>(options);
   const [selectedOption, setSelectedOption] = useState<IOptionSetOption | undefined | null>(null);
  
@@ -79,7 +80,7 @@ const ChoiceSearchAndColorComponent = (props: IChoiceSearchAndColorComponentProp
     <>
       <div ref={calloutTarget} style={container}> 
          <Icon iconName='FullCircleMask' style={{ color: selectedOption?.Color ? selectedOption.Color : "#ECECEC", display: displayColors && selectedOption ? "block" : "none", marginRight: "0.5rem"}}/>
-        <TextField value={inputValue} onChange={(e, newValue) => handleInputChange(newValue as string)} styles={asyncSearchBoxStyles}  placeholder={selectedOption ? selectedOption.Label : ""} onBlur={onBlur} onClick={openOptionList} /*v onClear={setDefaultOptions} *//>
+        <TextField value={inputValue} onChange={(e, newValue) => handleInputChange(newValue as string)} styles={asyncSearchBoxStyles}  placeholder={selectedOption ? selectedOption.Label : ""} onBlur={onBlur} onClick={openOptionList} disabled={isDisabled || false} /*v onClear={setDefaultOptions} *//>
       </div>
       {showOptions ? (
                 <Callout

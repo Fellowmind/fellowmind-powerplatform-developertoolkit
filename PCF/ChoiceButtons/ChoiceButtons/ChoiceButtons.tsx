@@ -8,6 +8,7 @@ interface IChoiceButtonssProps {
     currentValue: number | null,
     primaryButtonBackground: string;
     secondaryButtonBackground: string;
+    isDisabled: boolean;
 }
 
 export interface IOptionSetOption {
@@ -17,12 +18,20 @@ export interface IOptionSetOption {
 }
 
 const ChoiceButtonss = (props: IChoiceButtonssProps) => {
-  const { optionset, onOptionsetChange , currentValue, primaryButtonBackground, secondaryButtonBackground} = props;
+  const { optionset, onOptionsetChange , currentValue, primaryButtonBackground, secondaryButtonBackground, isDisabled} = props;
+  
   return (
     <Stack horizontal horizontalAlign='start' wrap>
       {optionset.map((option) => (
         <Stack.Item key={option.Value}>
-              <ButtonComponent optionsetValue={option} selectedValue={currentValue} handleValueChange={onOptionsetChange}  primaryButtonBackground={primaryButtonBackground} secondaryButtonBackground={secondaryButtonBackground} />
+              <ButtonComponent
+                optionsetValue={option}
+                selectedValue={currentValue}
+                handleValueChange={onOptionsetChange}
+                primaryButtonBackground={primaryButtonBackground}
+                secondaryButtonBackground={secondaryButtonBackground}
+                isDisabled={isDisabled}
+              />
         </Stack.Item>
       ))}
     </Stack>

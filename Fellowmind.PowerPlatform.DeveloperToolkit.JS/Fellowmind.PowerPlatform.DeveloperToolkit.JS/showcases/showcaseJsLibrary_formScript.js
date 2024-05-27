@@ -38,6 +38,7 @@ fmfi.JsLibrary = fmfi.JsLibrary || function () {
         JsLib.UI.Listeners.Field.RegisterOnChangeEvent("fmfi_removesingleoption", fmfi.JsLibrary.Form.fmfi_removesingleoptionOnChange);
         JsLib.UI.Listeners.Field.RegisterOnChangeEvent("fmfi_removealloptions", fmfi.JsLibrary.Form.fmfi_removealloptionsOnChange);
         JsLib.UI.Listeners.Field.RegisterOnChangeEvent("fmfi_executeunboundaction", fmfi.JsLibrary.Form.fmfi_executeunboundactionOnChange)
+        JsLib.UI.Listeners.Field.RegisterOnChangeEvent("fmfi_prefilterlookupnamesearch", fmfi.JsLibrary.Form.fmfi_prefilterlookupnamesearchOnChange);        
     }
 
     var LoadDependentLibraries = function (libPath) {
@@ -335,6 +336,24 @@ fmfi.JsLibrary = fmfi.JsLibrary || function () {
                         JsLib.UI.Field.SetFieldState("fmfi_updateexistingrecordnameoftherecord", true);                        
                     }                        
                 });                
+            },
+            fmfi_prefilterlookupnamesearchOnChange: function () {
+                // <summary>
+                // Prefilters lookup with the text written into the search box.
+                // </summary>
+                
+                JsLib.UI.Lookup.AddPreSearch("fmfi_prefilterlookup", fmfi.JsLibrary.Form.fmfi_prefilterlookupExecuteFilter);
+            },
+            fmfi_prefilterlookupExecuteFilter: function () {
+                var fetchXML = "";
+                var searchText = JsLib.UI.Field.GetValue("fmfi_prefilterlookupnamesearch");
+                if (!JsLib.Helper.IsNullOrUndefined(searchText))
+                    fetchXML = `<filter type='and'>
+                                   <condition attribute='name' operator='like' value='${searchText}%'/>
+                                </filter>
+                               `;
+                
+                JsLib.UI.Lookup.AddCustomFilter(fetchXML, "fmfi_prefilterlookup", "account");
             },
             fmfi_createanewrecordinputtextOnChange: function () {
             // <summary>

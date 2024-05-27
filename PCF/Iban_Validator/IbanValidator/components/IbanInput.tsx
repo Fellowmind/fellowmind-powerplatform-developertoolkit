@@ -9,10 +9,11 @@ interface IIbanInputProps {
     context: ComponentFramework.Context<IInputs>;
     onIbanChange: (value: string) => void;
     setIban: (valid: boolean, iban: string) => void;
+    isDisabled: boolean;
 }
 
 const IbanInput = (props: IIbanInputProps) => {
-    const { ibanAccountNumber, context, onIbanChange, setIban } = props;
+    const { ibanAccountNumber, context, onIbanChange, setIban, isDisabled } = props;
 
     const [iban, setIbanHook] = useState("");
     const [ibanIsValid, setIsIbanValid] = useState(false)
@@ -70,7 +71,7 @@ const IbanInput = (props: IIbanInputProps) => {
     return (
         <Stack horizontal verticalAlign='center' tokens={stackTokens}>
             <Stack.Item>
-                <TextField label="" placeholder='---'  value={iban} styles={inputStyles} onChange={handleIbanChange} />
+                <TextField label="" placeholder='---'  value={iban} styles={inputStyles} onChange={handleIbanChange} disabled={isDisabled} />
             </Stack.Item>
             <Stack.Item>
                 {ibanIsValid ? "" : <Icon iconName='Error' styles={errorIconStyles} />}

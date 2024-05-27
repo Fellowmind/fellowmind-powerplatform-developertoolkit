@@ -12,10 +12,11 @@ interface IInputComponentProps {
     originFromZero: boolean | undefined;
     stepValue: number | undefined;
     color: string;
+    isDisabled: boolean;
 }
 
 const InputComponent = (props: IInputComponentProps) => {
-    const { onValueChange, maxValue, minValue, sliderValue, lowerSliderValue, formatValue, isRanged, originFromZero, stepValue, color } = props;
+    const { onValueChange, maxValue, minValue, sliderValue, lowerSliderValue, formatValue, isRanged, originFromZero, stepValue, color, isDisabled } = props;
 
     const componentTheme = useMemo<ITheme>(() => {
         const customTheme: ITheme = createTheme(getTheme());
@@ -65,6 +66,7 @@ const InputComponent = (props: IInputComponentProps) => {
                 originFromZero={originFromZero}
                 step={stepValue}
                 theme={componentTheme}
+                disabled={isDisabled}
             />
         </>
     )

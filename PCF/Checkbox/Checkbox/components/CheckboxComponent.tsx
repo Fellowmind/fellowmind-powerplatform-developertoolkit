@@ -4,11 +4,11 @@ import { Checkbox } from '@fluentui/react';
 interface ICheckboxComponentProps {
     onValueChange: (newValue: boolean) => void;
     isChecked: boolean;
-    
+    isDisabled: boolean;
 }
 
 const CheckboxComponent = (props: ICheckboxComponentProps) => {
-    const { onValueChange, isChecked } = props;
+    const { onValueChange, isChecked, isDisabled } = props;
     
     const [value, setValue] = useState<boolean>(isChecked);   
 
@@ -28,7 +28,7 @@ const CheckboxComponent = (props: ICheckboxComponentProps) => {
                 label=""
                 checked={value}
                 onChange={handleInputChange}
-                
+                disabled={isDisabled}
             />
         </>
     )

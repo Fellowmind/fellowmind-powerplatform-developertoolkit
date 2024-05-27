@@ -503,9 +503,9 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.WebAPI = fmfi.PowerPlatform.DeveloperT
 fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI || function () {
 
     ///////////////////////////////////////////////////////////////////////////////////////
-    /// Public interface for access 
+    /// Public interface for access
     ///////////////////////////////////////////////////////////////////////////////////////
-
+    
     return {
         Listeners: {
             Field: {
@@ -1640,7 +1640,8 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
         Lookup: {
             Prefilter: function (fieldName, entityName, fetchXML) {
                 /// <summary>
-                /// Prefilters lookups values with fetchXML.
+                /// Prefilters lookups values with fetchXML. Cannot be used when requirement is to filter the same lookup multiple times.
+                /// Use this only when requirement is to filter lookup during OnLoad of the form.
                 /// </summary>
                 /// <param name="fieldName" type="string" required="true" >
                 ///  Name of the field.
@@ -1648,22 +1649,74 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                 /// <param name="entityName" type="string" required="true" >
                 ///  Name of the entity.
                 /// </param>
-                /// <param name="fetchXML" type="string" required="true" >
-                ///  FetchXML used to filter the values.
+                /// <param name="fetchXML" type="string" required="false" >
+                ///  FetchXML used to filter the values. If value is not given then any previous prefiltering will be just removed.
                 /// </param>
 
                 if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(fieldName))
                     throw "UI.Lookup.Prefilter: parameter 'fieldName' must be defined!";
 
                 if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(entityName))
-                    throw "UI.Lookup.Prefilter: parameter 'entityName' must be defined!";
+                    throw "UI.Lookup.Prefilter: parameter 'entityName' must be defined!";                
+
+                // Remove existing presearch event handler               
+                fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.Control.GetControl(fieldName, true).removePreSearch(filterLookup);
+
+                function filterLookup () {
+                    fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.Control.GetControl(fieldName, true).addCustomFilter(fetchXML, entityName);
+                }
+                
+                // If fetchXML is provided, add presearch event handler with new filter
+                if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(fetchXML)) {    
+                    fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.Control.GetControl(fieldName, true).addPreSearch(filterLookup);
+                }
+            },
+            AddPreSearch: function (fieldName, functionToCall) {
+                /// <summary>
+                /// Adds a new handler function that will be called when to filter the results to the lookup when the user clicks the lookup.
+                /// Use this when the requirement is to filter lookup during field OnChange events.
+                /// </summary>
+                /// <param name="fieldName" type="string" required="true" >
+                ///  Name of the field.
+                /// </param>
+                /// <param name="functionToCall" type="function" required="true" >
+                ///  Function that is used to generate the FetchXML query. Function is also required to call method AddCustomFilter after the FetchXML has been constructed.
+                /// </param>
+
+                if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(fieldName))
+                    throw "UI.Lookup.AddPreSearch: parameter 'fieldName' must be defined!";
+
+                if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(functionToCall))
+                    throw "UI.Lookup.AddPreSearch: parameter 'functionToCall' must be defined!";   
+
+                fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.Control.GetControl(fieldName, true).removePreSearch(functionToCall);
+                fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.Control.GetControl(fieldName, true).addPreSearch(functionToCall);
+            },
+            AddCustomFilter: function (fetchXML, fieldName, entityName) {
+                /// <summary>
+                /// Should be called from the handler function that generates the FetchXML query for the lookup.
+                /// Use this when the requirement is to filter lookup during field OnChange events.
+                /// </summary>
+                /// <param name="fetchXML" type="string" required="true" >
+                ///  FetchXML used to filter the lookup.
+                /// </param>
+                /// <param name="fieldName" type="string" required="true" >
+                ///  Name of the field.
+                /// </param>
+                /// <param name="functionToCall" type="function" required="true" >
+                ///  Function that is used to generate the FetchXML query. Function is also required to call method AddCustomFilter after the FetchXML has been constructed.
+                /// </param>
 
                 if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(fetchXML))
-                    throw "UI.Lookup.Prefilter: parameter 'fetchXML' must be defined!";
+                    return;
 
-                fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.Control.GetControl(fieldName, true).addPreSearch(function () {
-                    fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.Control.GetControl(fieldName, true).addCustomFilter(fetchXML, entityName);
-                });
+                if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(fieldName))
+                    throw "UI.Lookup.AddCustomFilter: parameter 'fieldName' must be defined!";
+
+                if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(entityName))
+                    throw "UI.Lookup.AddCustomFilter: parameter 'entityName' must be defined!"; 
+
+                fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.Control.GetControl(fieldName, true).addCustomFilter(fetchXML, entityName);
             }
         },
         Dialogue: {
@@ -2805,8 +2858,11 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper = fmfi.PowerPlatform.DeveloperT
             /// Removes parenthesis (curly) from a GUID value.
             /// </summary>
             /// <param name="id" type="string" required="true" >
-            ///  GUID value from which the parenthesis should be removed.           
+            ///  GUID value from which the parenthesis should be removed.
             /// </param>
+
+            if (id === "")
+                return "";
 
             if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(id))
                 return null;
@@ -3041,7 +3097,7 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.Enums = fmfi.PowerPlatform.DeveloperTo
         FormNotification_Type: {
             ERROR: 'ERROR',
             WARNING: 'WARNING',
-            INFO: "WARNING"
+            INFO: "INFO"
         },
         GlobalNotification_Type: {
             SUCCESS: 1,

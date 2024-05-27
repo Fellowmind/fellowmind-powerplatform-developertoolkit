@@ -28,7 +28,7 @@ export class Checkbox implements ComponentFramework.StandardControl<IInputs, IOu
         // Add control initialization code
         this.context = context
         this.container = container
-        this.isChecked = this.context.parameters.isChecked.raw as boolean;       
+        this.isChecked = this.context.parameters.isChecked.raw as boolean;
 
         this.notifyOutputChanged = notifyOutputChanged
     }
@@ -39,11 +39,11 @@ export class Checkbox implements ComponentFramework.StandardControl<IInputs, IOu
      * @param context The entire property bag available to control via Context Object; It contains values as set up by the customizer mapped to names defined in the manifest, as well as utility functions
      */
     public updateView(context: ComponentFramework.Context<IInputs>): void {
-        
         // Add code to update control view
         const props = {
             onValueChange: this.onValueChange.bind(this),
-            isChecked: this.isChecked as boolean,            
+            isChecked: this.isChecked as boolean,
+            isDisabled: context.mode.isControlDisabled
         }
         ReactDOM.render(React.createElement(CheckboxComponent, props), this.container);
     }
@@ -68,9 +68,8 @@ export class Checkbox implements ComponentFramework.StandardControl<IInputs, IOu
     }
 
     public onValueChange(newValue: boolean) {
-        
+        if(this.isChecked === newValue) return;
         this.isChecked = newValue;
-
         this.notifyOutputChanged()
     }
 }

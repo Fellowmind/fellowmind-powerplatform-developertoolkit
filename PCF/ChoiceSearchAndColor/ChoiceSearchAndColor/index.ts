@@ -42,12 +42,14 @@ export class ChoiceSearchAndColor implements ComponentFramework.StandardControl<
     {
         // Add code to update control view
         let options = context.parameters.Picklist.attributes?.Options;
+        const isDisabled = context.mode.isControlDisabled || !context.parameters.Picklist.security?.editable;
+  
 
         if(window.location.href.includes("localhost")) {
             options = [{ Label: "Option 1", Value: 1, Color: "#D841F8" }, { Label: "Option 2", Value: 2, Color: "#8BC7F0" }, { Label: "Option 3", Value: 3, Color: "#A9F251" }]
         }
 
-        const props = { options: (options as any), onValueChange: this.onValueChange.bind(this), currentValue: context.parameters.Picklist.raw, displayColors: context.parameters.DisplayColors.raw  };
+        const props = { options: (options as any), onValueChange: this.onValueChange.bind(this), currentValue: context.parameters.Picklist.raw, displayColors: context.parameters.DisplayColors.raw, isDisabled };
         ReactDOM.render(React.createElement(ChoiceSearchAndColorComponent, props as any), this.container)
     }
 

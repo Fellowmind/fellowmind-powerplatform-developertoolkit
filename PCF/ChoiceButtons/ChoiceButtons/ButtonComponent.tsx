@@ -8,10 +8,11 @@ interface IButtonComponentProps {
     handleValueChange: (value: number | null) => void;
     primaryButtonBackground: string;
     secondaryButtonBackground: string;
+    isDisabled: boolean;
 }
 
 const ButtonComponent = (props: IButtonComponentProps) => {
-    const {optionsetValue, selectedValue, handleValueChange, primaryButtonBackground, secondaryButtonBackground} = props;
+    const {optionsetValue, selectedValue, handleValueChange, primaryButtonBackground, secondaryButtonBackground, isDisabled} = props;
     
     const handleButtonClick = () => {
         // If the value is already selected, clear the value if it's clicked again
@@ -22,9 +23,9 @@ const ButtonComponent = (props: IButtonComponentProps) => {
         }
     }
 
-    let component = <DefaultButton text={optionsetValue.Label}  style={{ background: secondaryButtonBackground}} onClick={handleButtonClick} />
+    let component = <DefaultButton text={optionsetValue.Label}  style={{ background: secondaryButtonBackground}} onClick={handleButtonClick} disabled={isDisabled} />
     if(selectedValue === optionsetValue.Value) {
-        component = <PrimaryButton text={optionsetValue.Label} style={{ background: primaryButtonBackground }} onClick={handleButtonClick} />
+        component = <PrimaryButton text={optionsetValue.Label} style={{ background: primaryButtonBackground }} onClick={handleButtonClick} disabled={isDisabled} />
     }
 
   return component
