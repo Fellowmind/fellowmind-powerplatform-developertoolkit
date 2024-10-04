@@ -60,7 +60,18 @@ export class FormButton implements ComponentFramework.StandardControl<IInputs, I
         // Add code to update control view parameters.ibanAccountNumber.attributes.LogicalName
         const { buttonText, confirmationText, buttonActive , currentValue} = context.parameters
 
-        const props = { buttonText: buttonText.raw, confirmationText: confirmationText.raw, buttonActive: buttonActive.raw, currentValue: currentValue.raw, onCurrentValueChange: this.onCurrentValueChange.bind(this), entityId: (context as IContext).page.entityId, entityTypeName: (context as IContext).page.entityTypeName, currentFieldName: (context as IContext).parameters.currentValue.attributes?.LogicalName, webApi: this.context.webAPI };
+        const props = { 
+            buttonText: buttonText.raw, 
+            confirmationText: confirmationText.raw, 
+            buttonActive: buttonActive.raw, 
+            currentValue: currentValue.raw, 
+            onCurrentValueChange: this.onCurrentValueChange.bind(this), 
+            entityId: (context as IContext).page.entityId, 
+            entityTypeName: (context as IContext).page.entityTypeName, 
+            currentFieldName: (context as IContext).parameters.currentValue.attributes?.LogicalName,
+            webApi: this.context.webAPI,
+            isControlDisabled: (context as IContext).mode.isControlDisabled
+        };
 
         ReactDOM.render(React.createElement(FormButtonComponent, props), this.container); 
     }

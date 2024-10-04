@@ -8,7 +8,7 @@
   <Import Project="$(PowerAppsTargetsPath)\Microsoft.PowerApps.VisualStudio.Solution.props" Condition="Exists('$(PowerAppsTargetsPath)\Microsoft.PowerApps.VisualStudio.Solution.props')" />
 
   <PropertyGroup>
-    <ProjectGuid>82f186d7-4010-4418-93d2-b251fe0c4483</ProjectGuid>
+    <ProjectGuid>656e1104-f8d9-4ddb-92f8-3c4abdacf82b</ProjectGuid>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <!--Remove TargetFramework when this is available in 16.1-->
     <TargetFramework>net462</TargetFramework>
@@ -16,11 +16,14 @@
     <SolutionRootPath>src</SolutionRootPath>
   </PropertyGroup>
 
-  <!-- Solution Packager overrides, un-comment to use: SolutionPackagerType (Managed, Unmanaged, Both)
-  <PropertyGroup>
-    <SolutionPackageType>Managed</SolutionPackageType>
-  </PropertyGroup>
+  <!-- 
+    Solution Packager overrides, un-comment to use: SolutionPackagerType (Managed, Unmanaged, Both)
+    Solution Localization Control, if you want to enabled localization of your solution, un-comment SolutionPackageEnableLocalization and set the value to true. - Requires use of -loc flag on Solution Clone or Sync
   -->
+  <PropertyGroup>
+    <SolutionPackageType>Both</SolutionPackageType>
+    <SolutionPackageEnableLocalization>false</SolutionPackageEnableLocalization>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.PowerApps.MSBuild.Solution" Version="1.*" />
@@ -44,7 +47,17 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\pcf.pcfproj" />
+    <ProjectReference Include="..\Checkbox\Checkbox.pcfproj" />
+    <ProjectReference Include="..\ChoiceButtons\Optionset-button.pcfproj" />
+    <ProjectReference Include="..\ChoiceSearchAndColor\PicklistWithSearch.pcfproj" />
+    <ProjectReference Include="..\FormButton\FormButton.pcfproj" />
+    <ProjectReference Include="..\Iban_Validator\Iban_Validator.pcfproj" />
+    <ProjectReference Include="..\Slider\Slider.pcfproj" />
+    <ProjectReference Include="..\SSNValidator\SSNValidator.pcfproj" />
+    <ProjectReference Include="..\StarRating\StarRating.pcfproj" />
+    <ProjectReference Include="..\CustomDatePicker\Fellowmind.CustomDatePicker.pcfproj" />
+    <ProjectReference Include="..\Year-picker\pcf.pcfproj" />
+    <ProjectReference Include="..\RegexValidator\RegexValidationControl\Fellowmind.RegexValidator.pcfproj" />
   </ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />

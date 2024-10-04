@@ -62,7 +62,14 @@ Thumbs.db
 **/out
 **/obj
 **/bin
-**/packages
+PCF/Year-picker/PCFComponents/
+Fellowmind.PowerPlatform.DeveloperToolkit.JS/.vs/
+/Fellowmind.PowerPlatform.DeveloperToolkit.JS/.vs/Fellowmind.PowerPlatform.DeveloperToolkit.JS/FileContentIndex
+Actions/ExecuteHttpTrigger/.vs/
+Actions/ExecuteHttpTrigger/packages/
+Actions/GenerateReferenceNumber/.vs/
+Actions/GenerateReferenceNumber/packages/
 .vs/
+/Fellowmind.PowerPlatform.DeveloperToolkit.JS.ConstantGenerator
 **/.vs
 *.sln

@@ -90,13 +90,14 @@ export class CustomDatePicker implements ComponentFramework.StandardControl<IInp
 		this.secondSelectElement.classList.add("dnl-second-select");
 
 		switch (this.dateFormat) {
-			case "0": //YYYY-MM
+			case "0": {//YYYY-MM
 				this.yearSelectValues.forEach(function (el) {
 					context.secondSelectElement.add(new Option(el));
 				});
 				this.secondSelectElement.selectedIndex = this.secondValue ? this.yearSelectValues.indexOf(this.secondValue) : 0;
 				break;
-			case "1": //MM-dd
+			}
+			case "1": {//MM-dd
 				let currentMonth = this.firstValue && this.firstValue[0] == "0" && this.firstValue.length > 1 ? this.firstValue.substring(1) : this.firstValue == "---" || !this.firstValue ? "1" : this.firstValue;
 				let currentYear = new Date().getFullYear();
 				let daysInMonth = this.getDaysInMonth(parseInt(currentMonth, 10), currentYear);
@@ -107,6 +108,7 @@ export class CustomDatePicker implements ComponentFramework.StandardControl<IInp
 
 				this.secondSelectElement.selectedIndex = this.secondValue ? this.daySelectValues.indexOf(this.secondValue) : 0;
 				break;
+			}
 		}
 
 		this.secondSelectElement.addEventListener("change", this.secondChange.bind(this));
@@ -118,7 +120,7 @@ export class CustomDatePicker implements ComponentFramework.StandardControl<IInp
 		this.firstValue = this.monthSelectValues[this.firstValue];
 
 		switch (this.dateFormat) {
-			case "1": //MM-dd
+			case "1": {//MM-dd
 				let currentMonth = this.firstValue && this.firstValue[0] == "0" && this.firstValue.length > 1 ? this.firstValue.substring(1) : this.firstValue == "---" || !this.firstValue ? "1" : this.firstValue;
 				let currentYear = new Date().getFullYear();
 				let daysInMonth = this.getDaysInMonth(parseInt(currentMonth, 10), currentYear);
@@ -134,6 +136,7 @@ export class CustomDatePicker implements ComponentFramework.StandardControl<IInp
 				}
 
 				break;
+			}
 		}
 
 		this._notifyOutputChanged();

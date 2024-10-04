@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="Fellowmind" constructor="Slider" version="1.0.0" display-name-key="Slider" description-key="Slider description" control-type="standard">
+  <control namespace="Fellowmind" constructor="Slider" version="1.0.1" display-name-key="Slider" description-key="Slider description" control-type="standard">
     <external-service-usage enabled="false">
       <!--UNCOMMENT TO ADD EXTERNAL DOMAINS
       <domain></domain>

@@ -12,6 +12,7 @@ export class RegexValidator implements ComponentFramework.StandardControl<IInput
 	private objContext: ComponentFramework.Context<IInputs>;
 
 	/** Event Handler 'refreshData' reference */
+	// eslint-disable-next-line no-undef
 	private objRefreshData: EventListenerOrEventListenerObject;
 	
 	/**
@@ -78,7 +79,7 @@ export class RegexValidator implements ComponentFramework.StandardControl<IInput
 
 		if(this.isValid(context.parameters.textValueToProcess))
 		{
-			this.sInputValueToProcess = context.parameters.textValueToProcess.raw;
+			this.sInputValueToProcess = context.parameters.textValueToProcess.raw || "";
 			sInputValue = context.parameters.textValueToProcess.formatted ?
 				context.parameters.textValueToProcess.formatted : "";
 		}
@@ -86,12 +87,12 @@ export class RegexValidator implements ComponentFramework.StandardControl<IInput
 		if(this.isValid(context.parameters.regexExpressionToProcess))
 		{
 			this.objRegexToProcess = 
-				new RegExp(context.parameters.regexExpressionToProcess.raw);
+				new RegExp(context.parameters.regexExpressionToProcess.raw!);
 		}
 		
 		if(this.isValid(context.parameters.notificationToUser))
 		{
-			this.sNotificationToUser = context.parameters.notificationToUser.raw;
+			this.sNotificationToUser = context.parameters.notificationToUser.raw!;
 		}
 
 		// Set the control value on initialization
@@ -155,8 +156,8 @@ export class RegexValidator implements ComponentFramework.StandardControl<IInput
 		{
 			objClearNotification = objClearNotification as Function;
 			objSetNotification = objSetNotification as Function;
-			if(this.isValid(this.objRegexToProcess) && this.isValid(sValueToProcess) &&
-			  !this.objRegexToProcess.test(sValueToProcess))
+			if (this.isValid(this.objRegexToProcess) && this.isValid(sValueToProcess) &&
+				!this.objRegexToProcess.test(sValueToProcess))
 			{
 				//setNotification(message,uniqueId)
 				objSetNotification(sNotification, sUniqueId);
@@ -173,8 +174,8 @@ export class RegexValidator implements ComponentFramework.StandardControl<IInput
 	{
 		var objFunctionToReturn = null;
 		
-		if(this.isValid(this.objContext) && this.isValid(this.objContext.utils) &&
-		   this.isValid((this.objContext.utils as any)[sFunctionName]))
+		if (this.isValid(this.objContext) && this.isValid(this.objContext.utils) &&
+			this.isValid((this.objContext.utils as any)[sFunctionName]))
 		{
 			objFunctionToReturn = (this.objContext.utils as any)[sFunctionName] as Function;
 		}
@@ -204,9 +205,12 @@ export class RegexValidator implements ComponentFramework.StandardControl<IInput
 
 	public isValid(objectToProcess: any): boolean
 	{
-		var bIsObjectValid: boolean = false;
-		if(objectToProcess != null && objectToProcess !== "" &&
-			objectToProcess != undefined && objectToProcess !== "undefined")
+		let bIsObjectValid: boolean = false;
+		if (objectToProcess != null
+			&& objectToProcess !== ""
+			&& objectToProcess != undefined
+			&& objectToProcess !== "undefined"
+			&& (!objectToProcess.raw || this.isValid(objectToProcess.raw)) )
 		{
 			bIsObjectValid = true;
 		}

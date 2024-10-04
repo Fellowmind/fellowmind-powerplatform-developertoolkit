@@ -2,10 +2,10 @@
 <ImportExportXml version="9.1.0.643" SolutionPackageVersion="9.1" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <SolutionManifest>
     <!-- Unique Name of Cds Solution-->
-    <UniqueName>PCFComponents</UniqueName>
+    <UniqueName>PCFToolkit</UniqueName>
     <LocalizedNames>
       <!-- Localized Solution Name in language code -->
-      <LocalizedName description="PCFComponents" languagecode="1033" />
+      <LocalizedName description="PCFToolkit" languagecode="1033" />
     </LocalizedNames>
     <Descriptions />
     <Version>1.0</Version>
@@ -27,7 +27,7 @@
       <!-- Customization Prefix for the Cds Publisher-->
       <CustomizationPrefix>fmfi</CustomizationPrefix>
       <!-- Derived Option Value Prefix for the Customization Prefix of Cds Publisher -->
-      <CustomizationOptionValuePrefix>20234</CustomizationOptionValuePrefix>
+      <CustomizationOptionValuePrefix>33715</CustomizationOptionValuePrefix>
       <Addresses>
         <!-- Address of the Publisher-->
         <Address>

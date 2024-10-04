@@ -1,5 +1,5 @@
 import { DefaultButton } from '@fluentui/react';
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import ConfirmationDialog from './ConfirmationDialog';
 
 
@@ -11,11 +11,20 @@ import ConfirmationDialog from './ConfirmationDialog';
 
 const FormButtonComponent = (props: any) => {
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
 
-  const { buttonText, confirmationText, buttonActive, currentValue, onCurrentValueChange, entityId, entityTypeName, currentFieldName, webApi } = props;
+  const { buttonText, confirmationText, buttonActive, currentValue, onCurrentValueChange, entityId, entityTypeName, currentFieldName, webApi, isControlDisabled } = props;
+
+  useEffect(() => {    
+    if (isControlDisabled === true || buttonActive === false) {
+      setIsDisabled(true);
+    } else {
+      setIsDisabled(false);
+    }
+  }, [buttonActive, isControlDisabled]);
 
   const handleButtonClick = () => {
-    if (confirmationText?.trim().length > 0) {
+    if (confirmationText !== null && confirmationText?.trim().length > 0) {
       toggleShowConfirmationDialog();
     } else {
       handleValueChange();
@@ -41,7 +50,7 @@ const FormButtonComponent = (props: any) => {
   }
   return (
     <>
-      <DefaultButton text={buttonText} onClick={handleButtonClick} disabled={!buttonActive} />
+      <DefaultButton text={buttonText} onClick={handleButtonClick} disabled={isDisabled} />
       <ConfirmationDialog showConfirmationDialog={showConfirmationDialog} toggleShowConfirmationDialog={toggleShowConfirmationDialog} handleValueChange={handleValueChange} confirmationText={confirmationText} />
     </>
   )

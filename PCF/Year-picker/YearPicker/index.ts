@@ -5,6 +5,7 @@ export class YearPicker implements ComponentFramework.StandardControl<IInputs, I
 	private _input: HTMLInputElement;
 	private _value: Date | undefined;
 	private _notifyOutputChanged: () => void;
+	// eslint-disable-next-line no-undef
 	private _refreshData: EventListenerOrEventListenerObject;
 	private _updateValue: () => void;
 
@@ -30,7 +31,7 @@ export class YearPicker implements ComponentFramework.StandardControl<IInputs, I
 		notifyOutputChanged: () => void,
 		state: ComponentFramework.Dictionary,
 		container: HTMLDivElement) {
-		this._value = context.parameters.value.raw;
+		this._value = context.parameters.value.raw || undefined;
 
 		this._notifyOutputChanged = notifyOutputChanged;
 		this._refreshData = this.refreshData.bind(this);
@@ -54,7 +55,7 @@ export class YearPicker implements ComponentFramework.StandardControl<IInputs, I
 			this._input.removeAttribute("disabled");
 		}
 
-		this._value = context.parameters.value.raw;
+		this._value = context.parameters.value.raw || undefined;
 		this._updateValue();
 	}
 
@@ -64,7 +65,7 @@ export class YearPicker implements ComponentFramework.StandardControl<IInputs, I
 			return;
 		}
 
-		this._input.setAttribute("value", this._value.getFullYear().toString());
+		this._input.setAttribute("value", this._value?.getFullYear().toString() || '');
 	}
 
 	private refreshData(evt: Event) {

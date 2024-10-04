@@ -1,7 +1,7 @@
 {
   "name": "pcf-project",
   "version": "1.0.0",
-  "description": "Project containing your PowerApps Component Framework (PCF) control.",
+  "description": "PCF custom date picker component",
   "scripts": {
     "build": "pcf-scripts build",
     "clean": "pcf-scripts clean",
@@ -11,10 +11,10 @@
     "publish-force": "pac pcf push --publisher-prefix fmfi --force-import"
   },
   "dependencies": {
-    "@types/node": "^10.12.18",
-    "@types/powerapps-component-framework": "^1.2.0"
   },
   "devDependencies": {
+    "@types/node": "^18.8.2",
+    "@types/powerapps-component-framework": "^1.3.4",
     "pcf-scripts": "^1",
     "pcf-start": "^1",
     "typescript": "^4.4.4"
