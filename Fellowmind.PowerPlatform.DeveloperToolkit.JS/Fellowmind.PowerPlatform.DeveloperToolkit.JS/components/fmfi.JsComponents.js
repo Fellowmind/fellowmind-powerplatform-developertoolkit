@@ -307,7 +307,7 @@ fmfi.JsComponents.FormSwitch = fmfi.JsComponents.FormSwitch || function () {
      */
     const populateEntityFormParameters = function () {
         let parameters = {};
-        let attributes = JsLib.Record.GetRecordAttributes();
+        let attributes = JsLib.Record.GetRecordAttributes().get();
         if (attributes != null) {
             for (let i in attributes) {
                 if (attributes[i].getIsDirty() && attributes[i].getValue()) {
