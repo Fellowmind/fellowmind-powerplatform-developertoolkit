@@ -67,12 +67,13 @@ fmfi.JsComponents.Helpers = fmfi.JsComponents.Helpers || function () {
             /**
              * Converts Power Platform field value or array of values to array that contains only strings in lower case.
              * If Field type is lookup, array will contain only record IDs
+             * If field Value is null, array contains one empty string
              * @param {*} fieldValue Power Platform Field Value
              * @return {Array} Array of strings in lower case.
              */
             ConvertFieldValueToStringArray: function (fieldValue) {
                 if (JsLib.Helper.IsNullOrUndefined(fieldValue)) {
-                    return [];
+                    return [""];
                 } else if (Array.isArray(fieldValue)) {
                     let a = fieldValue;
                     if (a.length > 0 && typeof a[0] === 'object' && !Array.isArray(a[0]) && a[0] !== null) {
@@ -80,6 +81,8 @@ fmfi.JsComponents.Helpers = fmfi.JsComponents.Helpers || function () {
                         a = a.map(a => JsLib.Helper.RemoveParenthesisFromGUID(a.id).toLowerCase());
                     } else if (a.length > 0 && typeof a[0] !== 'object' && !Array.isArray(a[0]) && a[0] !== null) {
                         a = a.map(a => JsLib.Helper.RemoveParenthesisFromGUID(a.toString()).toLowerCase());
+                    } else if (a.length === 0 || (a.length === 1 && a[0] === null)) {
+                        a = [""];
                     }
                     return a;
                 } else {
@@ -156,7 +159,7 @@ fmfi.JsComponents.Helpers = fmfi.JsComponents.Helpers || function () {
 fmfi.JsComponents.FormLocker = fmfi.JsComponents.FormLocker || function () {
     const component = {
         name: "FormLocker",
-        JSONModel: '{"lookupFieldToParentTable":"FIELD_SCHEMA_NAME", "sourceField": "FIELD_SCHEMA_NAME", "lockingValues": ["FIELD_VALUE"], "reverseLockingValues": false , "exceptionFields": ["FIELD_SCHEMA_NAME"]}'
+        JSONModel: '{"lookupFieldToParentTable":"FIELD_SCHEMA_NAME", "sourceField": "FIELD_SCHEMA_NAME", "lockingValues": ["FIELD_VALUE"], "reverseLockingValues": false, "exceptionFields": ["FIELD_SCHEMA_NAME"]}'
     };
 
     /**
@@ -171,7 +174,7 @@ fmfi.JsComponents.FormLocker = fmfi.JsComponents.FormLocker || function () {
         if (JsLib.Helper.IsNullOrUndefined(settings.lockingValues) || settings.lockingValues.length <= 0) {
             throw fmfi.JsComponents.Helpers.Common.CreateError("lockingValues missing or array empty from the Settings JSON", component);
         } else {
-            settings.lockingValues = settings.lockingValues.map(a => JsLib.Helper.RemoveParenthesisFromGUID(a.toString()).toLowerCase());
+            settings.lockingValues = settings.lockingValues.map(a => !JsLib.Helper.IsNullOrUndefined(a) ? JsLib.Helper.RemoveParenthesisFromGUID(a.toString()).toLowerCase() : "");
         }
 
         if (JsLib.Helper.IsNullOrUndefined(settings.exceptionFields)) {
@@ -205,7 +208,7 @@ fmfi.JsComponents.FormLocker = fmfi.JsComponents.FormLocker || function () {
             sourceFieldValueAsArray = fmfi.JsComponents.Helpers.Common.ConvertFieldValueToStringArray(JsLib.UI.Field.GetValue(settings.sourceField));
         }
 
-        if (JsLib.Helper.IsNullOrUndefined(sourceFieldValueAsArray) || sourceFieldValueAsArray.length <= 0) {
+        if (JsLib.Helper.IsNullOrUndefined(sourceFieldValueAsArray)) {
             return;
         }
 
@@ -267,19 +270,15 @@ fmfi.JsComponents.FormLocker = fmfi.JsComponents.FormLocker || function () {
 }();
 
 /**
- * Changes current Form based on Field Value
+ * Changes current Form based on Field Value or active Business Process Flow
  */
 fmfi.JsComponents.FormSwitch = fmfi.JsComponents.FormSwitch || function () {
-    const component = {
-        name: "FormSwitch",
-        JSONModel: '{"sourceField": "FIELD_SCHEMA_NAME", "fieldSettings": {"FIELD_VALUE": ["FORM_GUID"], "FIELD_VALUE": ["FORM_GUID"]}, "switchIfNewForm": true}'
-    };
 
     /**
     * Validates component settings and adds default values
     * @param {Object} settings Settings object
     */
-    const ValidateSettings = function (settings) {
+    const ValidateSettingsBasedOnFieldValue = function (settings, component) {
         if (JsLib.Helper.IsNullOrUndefined(settings.sourceField)) {
             throw fmfi.JsComponents.Helpers.Common.CreateError("sourceField missing from the Settings JSON", component);
         }
@@ -336,6 +335,7 @@ fmfi.JsComponents.FormSwitch = fmfi.JsComponents.FormSwitch || function () {
         const currentFormItem = JsLib.UI.Form.GetCurrentForm();
 
         sourceFieldValueAsArray.every(function (value) {
+            value = value.length !== 0 ? value : "null";
             const fieldSetForms = fmfi.JsComponents.Helpers.Common.ConvertFieldValueToStringArray(settings.fieldSettings[value]);
             const isCurrentFormCorrect = fieldSetForms.some(formSet => {
                 return formSet === currentFormItem.getId().toLowerCase();
@@ -365,20 +365,92 @@ fmfi.JsComponents.FormSwitch = fmfi.JsComponents.FormSwitch || function () {
         });
     };
 
+    /**
+    * Validates component settings and adds default values
+    * @param {Object} settings Settings object
+    */
+    const ValidateSettingsBasedOnBPF = function (settings, component) {
+        if (JsLib.Helper.IsNullOrUndefined(settings.settings)) {
+            throw fmfi.JsComponents.Helpers.Common.CreateError("settings missing or empty from the Settings JSON", component);
+        }
+
+        if (JsLib.Helper.IsNullOrUndefined(settings.switchIfNewForm)) {
+            settings.switchIfNewForm = true;
+        }
+
+        for (let [key, value] of Object.entries(settings.settings)) {
+            if (JsLib.Helper.IsNullOrUndefined(value)) {
+                throw fmfi.JsComponents.Helpers.Common.CreateError("Form GUID is empty or invalid in the Settings JSON", component);
+            } else {
+                settings.settings[key] = JsLib.Helper.RemoveParenthesisFromGUID(value.toString()).toLowerCase();
+            }
+        }
+    };
+
+    /**
+    * Switches form based on provided settings
+    * @param {Object} settings Settings object
+     * @returns Returns in the middle if form should not be switched
+    */
+    const SwitchFormBasedOnBPF = async function (settings) {
+        if (!settings.switchIfNewForm && JsLib.UI.Form.GetType() === JsLib.Enums.FormType.CREATE) {
+            return;
+        }
+
+        const currentBPF = JsLib.UI.BPF.GetActiveProcess();
+        const currentFormItem = JsLib.UI.Form.GetCurrentForm();
+        let value = !JsLib.Helper.IsNullOrUndefined(currentBPF) && currentBPF.getId() ? currentBPF.getId().toLowerCase() : "null";
+
+        const fieldSetForms = fmfi.JsComponents.Helpers.Common.ConvertFieldValueToStringArray(settings.settings[value]);
+        const isCurrentFormCorrect = fieldSetForms.some(formSet => {
+            return formSet === currentFormItem.getId().toLowerCase();
+        });
+
+        if (isCurrentFormCorrect) {
+            return false;
+        }
+
+        JsLib.UI.Form.GetCurrentEntityAllForms().forEach(function (form) {
+            const containsForm = fieldSetForms.some(formSet => {
+                return formSet === form.getId().toLowerCase();
+            });
+
+            if (containsForm) {
+                if (JsLib.UI.Form.GetType() === JsLib.Enums.FormType.CREATE) {
+                    JsLib.UI.Form.OpenFormNewRecord(JsLib.Record.GetEntityName(), false, false, populateEntityFormParameters(), form.getId().toLowerCase());
+                } else if (JsLib.UI.Form.IsDirty()) {
+                    JsLib.Record.Save(undefined, function () {
+                        form.navigate();
+                    }, function () { });
+                } else {
+                    form.navigate();
+                }
+            }
+        });
+
+    };
+
     return {
         BasedOnFieldValue: {
             /**
             * 
             * Adds OnChange listeners to the sourceFields and runs logic
             * 
+            * Do not use same time with FormSwitch.BasedOnBPF
+            * 
             * Form OnLoad event. This is the ONLY event you should call from your form.
-            * Full namespace is required when called via form: fmfi.JsComponents.FormSwitch.BasedOnFieldValue.OnLoad.
+            * Full namespace is required when called via form: fmfi.JsComponents.FormSwitch.BasedOnFieldValue.OnLoad
             * Remember to pass the execution context.
             * 
             * @param {*} initExecutionContext Execution context
             * @param {String} settingsJSON Settings JSON from "Comma separated list of parameters that will be passed to the function"-box in string format. Settings schema should follow component.JSONModel schema.
             */
             OnLoad: async function (initExecutionContext, settingsJSON) {
+                const component = {
+                    name: "FormSwitch.BasedOnFieldValue",
+                    JSONModel: '{"sourceField": "FIELD_SCHEMA_NAME", "fieldSettings": {"FIELD_VALUE": ["FORM_GUID"], "FIELD_VALUE": ["FORM_GUID"]}, "switchIfNewForm": true}'
+                };
+
                 if (!initExecutionContext)
                     throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass execution context as first parameter"!', component);
                 executionContext = initExecutionContext;
@@ -388,12 +460,45 @@ fmfi.JsComponents.FormSwitch = fmfi.JsComponents.FormSwitch || function () {
                     await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
                 }
                 let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
-                ValidateSettings(settings);
+                ValidateSettingsBasedOnFieldValue(settings, component);
                 JsLib.UI.Listeners.Field.RegisterOnChangeEvent(settings.sourceField, function () {
                     SwitchFormBasedOnFieldValue(settings);
                 });
 
                 await SwitchFormBasedOnFieldValue(settings);
+            }
+        },
+        BasedOnBPF: {
+            /**
+            * 
+            * Runs Logic Form OnLoad
+            * 
+            * Do not use same time with FormSwitch.BasedOnFieldValue
+            * 
+            * Form OnLoad event. This is the ONLY event you should call from your form.
+            * Full namespace is required when called via form: fmfi.JsComponents.FormSwitch.BasedOnBPF.OnLoad
+            * Remember to pass the execution context.
+            * 
+            * @param {*} initExecutionContext Execution context
+            * @param {String} settingsJSON Settings JSON from "Comma separated list of parameters that will be passed to the function"-box in string format. Settings schema should follow component.JSONModel schema.
+            */
+            OnLoad: async function (initExecutionContext, settingsJSON) {
+                const component = {
+                    name: "FormSwitch.BasedOnBPF",
+                    JSONModel: '{"settings": {"BPF_GUID": ["FORM_GUID"], "BPF_GUID": ["FORM_GUID"]}, "switchIfNewForm": true}'
+                };
+
+                if (!initExecutionContext)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass execution context as first parameter"!', component);
+                executionContext = initExecutionContext;
+                if (!settingsJSON)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must add settings JSON to "Comma separated list of parameters that will be passed to the function"-box!', component);
+                if (!JsLib) {
+                    await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
+                }
+                let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
+                ValidateSettingsBasedOnBPF(settings, component);
+                await SwitchFormBasedOnBPF(settings);
             }
         }
     };
@@ -451,6 +556,7 @@ fmfi.JsComponents.BPFSwitch = fmfi.JsComponents.BPFSwitch || function () {
 
         let shouldBPFBeVisible = false;
         sourceFieldValueAsArray.every(function (value) {
+            value = value.length !== 0 ? value : "null";
             if (!JsLib.Helper.IsNullOrUndefined(settings.fieldSettings[value]) && (JsLib.Helper.IsNullOrUndefined(currentBPF) || !currentBPF.getId() || currentBPF.getId().toLowerCase() !== settings.fieldSettings[value])) {
                 if (JsLib.UI.Form.IsDirty()) {
                     JsLib.Record.Save(undefined, function () {
@@ -656,7 +762,7 @@ fmfi.JsComponents.FormTabAndSectionVisibility = fmfi.JsComponents.FormTabAndSect
             if (JsLib.Helper.IsNullOrUndefined(fieldset.fieldValues) || fieldset.fieldValues.length <= 0) {
                 throw fmfi.JsComponents.Helpers.Common.CreateError(attribute.sourceField + " fieldValues parameter is missing or empty from the Settings JSON", component);
             } else {
-                fieldset.fieldValues = fieldset.fieldValues.map(a => JsLib.Helper.RemoveParenthesisFromGUID(a.toString()).toLowerCase());
+                fieldset.fieldValues = fieldset.fieldValues.map(a => !JsLib.Helper.IsNullOrUndefined(a) ? JsLib.Helper.RemoveParenthesisFromGUID(a.toString()).toLowerCase() : "");
             }
 
             if (JsLib.Helper.IsNullOrUndefined(fieldset.showSettings)) {
@@ -686,6 +792,8 @@ fmfi.JsComponents.FormTabAndSectionVisibility = fmfi.JsComponents.FormTabAndSect
         let sourceFieldValueAsArray = fmfi.JsComponents.Helpers.Common.ConvertFieldValueToStringArray(JsLib.UI.Field.GetValue(attribute.sourceField));
         let tabsToSetVisible = [];
         let tabsToHide = [];
+        let sectionsToSetVisible = [];
+        let sectionsToHide = [];
 
         attribute.fieldSettings.forEach(function (fieldset) {
             const fieldValues = fieldset.fieldValues;
@@ -699,8 +807,13 @@ fmfi.JsComponents.FormTabAndSectionVisibility = fmfi.JsComponents.FormTabAndSect
                 } else if (showsetting.sectionNames.length === 0) {
                     tabsToHide.push(tabName);
                 }
-                showsetting.sectionNames.forEach(function (sectionName) {
-                    JsLib.UI.Section.SetVisibility(tabName, sectionName, visibility);
+                showsetting.sectionNames.forEach(function (name) {
+                    let sec = { sectionName: name, tabName: tabName };
+                    if (visibility) {
+                        sectionsToSetVisible.push(sec);
+                    } else {
+                        sectionsToHide.push(sec);
+                    }
                 });
             });
         });
@@ -715,6 +828,18 @@ fmfi.JsComponents.FormTabAndSectionVisibility = fmfi.JsComponents.FormTabAndSect
 
         tabsToHide.forEach(function (tab) {
             JsLib.UI.Tab.SetVisibility(tab, false);
+        });
+
+        sectionsToHide = sectionsToHide.filter(function (sec) {
+            return !sectionsToSetVisible.some(s => s.tabName === sec.tabName && s.sectionName === sec.sectionName);
+        });
+
+        sectionsToSetVisible.forEach(function (sec) {
+            JsLib.UI.Section.SetVisibility(sec.tabName, sec.sectionName, true);
+        });
+
+        sectionsToHide.forEach(function (sec) {
+            JsLib.UI.Section.SetVisibility(sec.tabName, sec.sectionName, false);
         });
     };
 
@@ -897,7 +1022,7 @@ fmfi.JsComponents.FieldHelpers = fmfi.JsComponents.FieldHelpers || function () {
  * Manipulates Choice-column values
  */
 fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || function () {
-    /// Object where component choice values before manipulating them
+    /// Object where cache component choice values before manipulating them
     let _choiceValueCache = {};
 
     /** 
@@ -930,7 +1055,7 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
             if (JsLib.Helper.IsNullOrUndefined(fieldset.fieldValues) || fieldset.fieldValues.length <= 0) {
                 throw fmfi.JsComponents.Helpers.Common.CreateError(attribute.sourceField + " fieldValues parameter is missing or empty from the Settings JSON", component);
             } else {
-                fieldset.fieldValues = fieldset.fieldValues.map(a => JsLib.Helper.RemoveParenthesisFromGUID(a.toString()).toLowerCase());
+                fieldset.fieldValues = fieldset.fieldValues.map(a => !JsLib.Helper.IsNullOrUndefined(a) ? JsLib.Helper.RemoveParenthesisFromGUID(a.toString()).toLowerCase() : "");
             }
 
             if (JsLib.Helper.IsNullOrUndefined(fieldset.choiceValuesToShow) || fieldset.choiceValuesToShow.length <= 0) {
