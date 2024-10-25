@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="Fellowmind" constructor="Slider" version="1.0.1" display-name-key="Slider" description-key="Slider description" control-type="standard">
+    <external-service-usage enabled="false">
+      <!--UNCOMMENT TO ADD EXTERNAL DOMAINS
+      <domain></domain>
+      <domain></domain>
+      -->
+    </external-service-usage>
+    <type-group name="numbers">
+      <type>Whole.None</type>
+      <type>Currency</type>
+      <type>FP</type>
+      <type>Decimal</type>
+    </type-group>
+    <property name="maxValue" display-name-key="MaxValue" description-key="Maximum value of the slider" of-type-group="numbers" usage="input" required="true" default-value="100" />
+    <property name="minValue" display-name-key="MinValue" description-key="Minimum value of the slider" of-type-group="numbers" usage="input" required="true" default-value="0" />
+    <property name="sliderValue" display-name-key="SliderValue" description-key="Value of the slider, upper value if ranged" of-type-group="numbers" usage="bound" required="true" />
+    <property name="lowerSliderValue" display-name-key="LowerSliderValue" description-key="Lower value of the slider, 0 if not ranged" of-type-group="numbers" usage="bound" required="false" />
+    <property name="formatValue" display-name-key="FormatValue" description-key="Format value, for example % or €" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="isRanged" display-name-key="IsRanged" description-key="Is ranged slider" of-type="TwoOptions" usage="input" required="false" default-value="false" />
+    <property name="originFromZero" display-name-key="OriginFromZero" description-key="Whether to attach the origin of slider to zero. If true, lower value cant be over 0 and upper value cant be under 0." of-type="TwoOptions" usage="input" required="false" default-value="false" />
+    <property name="stepValue" display-name-key="StepValue" description-key="The difference between the two adjacent values of the Slider" of-type-group="numbers" usage="input" required="false" default-value="1" />
+    <property name="color" display-name-key="Color" description-key="Selected rating color" of-type="SingleLine.Text" usage="input" required="false" default-value="#303030"/>
+    <resources>
+      <code path="index.ts" order="1"/>
+      <!-- UNCOMMENT TO ADD MORE RESOURCES
+      <css path="css/Slider.css" order="1" />
+      <resx path="strings/Slider.1033.resx" version="1.0.0" />
+      -->
+    </resources>
+    <!-- UNCOMMENT TO ENABLE THE SPECIFIED API
+    <feature-usage>
+      <uses-feature name="Device.captureAudio" required="true" />
+      <uses-feature name="Device.captureImage" required="true" />
+      <uses-feature name="Device.captureVideo" required="true" />
+      <uses-feature name="Device.getBarcodeValue" required="true" />
+      <uses-feature name="Device.getCurrentPosition" required="true" />
+      <uses-feature name="Device.pickFile" required="true" />
+      <uses-feature name="Utility" required="true" />
+      <uses-feature name="WebAPI" required="true" />
+    </feature-usage>
+    -->
+  </control>
+</manifest>

@@ -1,0 +1,9 @@
+{
+  "name": "fellowmind.power-platform.developer-toolkit.js",
+  "version": "1.0.0",
+  "description": "Fellowmind.PowerPlatform.DeveloperToolkit.JS",
+  "main": "fmfi.PowerPlatform.DeveloperToolkit.JsLib.js",
+  "author": {
+    "name": "Fellowmind Finland"
+  }
+}

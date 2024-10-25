@@ -1,0 +1,15 @@
+#sInputId {
+    height: 2rem;
+    width: calc(15.5vw - 6px);
+    border: none;
+}
+
+#sInputId:hover {
+    border: 1px solid rgb(96, 94, 92);
+}
+
+#sInputId:focus {
+    border: 2px solid rgb(0, 120, 212);
+    outline: none !important;
+}
+

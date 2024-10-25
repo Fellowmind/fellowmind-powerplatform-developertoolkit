@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="Fellowmind" constructor="CustomDatePicker" version="1.0.1" display-name-key="FM Custom Date Picker" description-key="Datepicker with YYYY-MM and MM-dd date formats." control-type="standard">
+    <property name="DateString"  display-name-key="DateString" description-key="field_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true" />
+        <property name="YearsStart" display-name-key="YearsStart" description-key="The lowest selectable year e.g. 1980" of-type="Whole.None" usage="input" required="true" />
+        <property name="YearsEnd" display-name-key="YearsEnd" description-key="The highest selectable year e.g. 3080" of-type="Whole.None" usage="input" required="true" />
+    <property name="DateFormat" display-name-key="Date Format" description-key="Please select date format" of-type="Enum" usage="input" required="true" default-value="0">
+      <value name="YYYY-MM" display-name-key="YYYY-MM" description-key="YYYY-MM">0</value>
+      <value name="MM-dd" display-name-key="MM-dd" description-key="MM-dd">1</value>
+    </property>
+    <property name="Language" display-name-key="Language" description-key="Please select language" of-type="Enum" usage="input" required="true" default-value="0">
+      <value name="English" display-name-key="English" description-key="English">0</value>
+      <value name="Finnish" display-name-key="Finnish" description-key="Finnish">1</value>
+    </property>
+    <resources>
+      <code path="index.ts" order="1"/>
+      <css path="css/dnlSaleDateDropdowns.css" order="1" />
+    </resources>
+  </control>
+</manifest>
