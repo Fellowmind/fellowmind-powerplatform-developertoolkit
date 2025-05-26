@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest>
   <control namespace="Fellowmind" constructor="RegexValidator"
-    version="1.0.1" display-name-key="FM Regex Validator"
+    version="1.0.2" display-name-key="FM Regex Validator"
     description-key="Apply Regex Validation on Text Field" control-type="standard">
     <!--
       A type-group to accept all required and supported Text Field Types

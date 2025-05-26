@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="Fellowmind" constructor="SSNValidator" version="1.0.12" display-name-key="Finnish Social Security Number Validator" description-key="Apply Finnish SSN Validation on Text Field" control-type="standard" >
+  <control namespace="Fellowmind" constructor="SSNValidator" version="1.0.13" display-name-key="Finnish Social Security Number Validator" description-key="Apply Finnish SSN Validation on Text Field" control-type="standard" >
     <type-group name="singleLineGroup"> 
       <type>SingleLine.Text</type>       
     </type-group>

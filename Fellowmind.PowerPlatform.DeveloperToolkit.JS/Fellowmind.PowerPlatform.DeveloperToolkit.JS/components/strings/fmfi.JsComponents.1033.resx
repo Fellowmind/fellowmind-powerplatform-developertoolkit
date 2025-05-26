@@ -149,6 +149,14 @@
     <value>Action completed</value>
     <comment/>
   </data>
+  <data name="CreateCopyOfTheRow.ConfirmationHeader" xml:space="preserve">
+    <value>Confirm</value>
+    <comment/>
+  </data>
+  <data name="CreateCopyOfTheRow.ConfirmationText" xml:space="preserve">
+    <value>Are you sure you want to make a copy?</value>
+    <comment/>
+  </data>
   <data name="Yes" xml:space="preserve">
     <value>Yes</value>
     <comment/>
