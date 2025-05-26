@@ -770,7 +770,7 @@ fmfi.JsComponents.FormTabAndSectionVisibility = fmfi.JsComponents.FormTabAndSect
             }
 
             if (JsLib.Helper.IsNullOrUndefined(fieldset.reverseValues)) {
-                attribute.fieldset.reverseValues = false;
+                fieldset.reverseValues = false;
             }
 
             fieldset.showSettings.forEach(function (showsetting) {
@@ -895,6 +895,138 @@ fmfi.JsComponents.FieldHelpers = fmfi.JsComponents.FieldHelpers || function () {
     };
 
     /**
+    * Locks field OnLoad or when value changes
+    * @param {*} setting Settings array
+    */
+    const LockFields = function (setting) {
+        let fieldsToLock = [];
+        let fieldsToUnlock = [];
+
+        setting.fieldSettings.forEach(function (fieldset) {
+            const fieldValues = fieldset.fieldValues;
+            const reverseValues = fieldset.reverseValues;
+            let lock = true;
+
+            if (!JsLib.Helper.IsNullOrUndefined(setting.sourceField)) {
+                let sourceFieldValueAsArray = fmfi.JsComponents.Helpers.Common.ConvertFieldValueToStringArray(JsLib.UI.Field.GetValue(setting.sourceField));
+                lock = reverseValues ? !fieldValues.some(item => sourceFieldValueAsArray.includes(item)) : fieldValues.some(item => sourceFieldValueAsArray.includes(item));
+            }
+
+            fieldset.targetFields.forEach(function (field) {
+                if (lock) {
+                    fieldsToLock.push(field);
+                } else {
+                    fieldsToUnlock.push(field);
+                }
+            });
+        });
+
+        fieldsToLock = fieldsToLock.filter(function (field) {
+            return !fieldsToUnlock.includes(field);
+        });
+
+        fieldsToLock.forEach(function (field) {
+            let controls = JsLib.UI.Field.GetField(field, false)?.controls;
+            controls.forEach(function (control) {
+                control.setDisabled(true);
+            });
+        });
+
+        fieldsToUnlock.forEach(function (field) {
+            let controls = JsLib.UI.Field.GetField(field, false)?.controls;
+            controls.forEach(function (control) {
+                control.setDisabled(false);
+            });
+        });
+    };
+
+    /**
+    * Hides or shows field when value changes or on load
+    * @param {*} setting Settings array
+    */
+    const HideOrUnhideFields = function (setting) {
+        let fieldsToHide = [];
+        let fieldsToShow = [];
+
+        setting.fieldSettings.forEach(function (fieldset) {
+            const fieldValues = fieldset.fieldValues;
+            const reverseValues = fieldset.reverseValues;
+            let visibility = true;
+
+            if (!JsLib.Helper.IsNullOrUndefined(setting.sourceField)) {
+                let sourceFieldValueAsArray = fmfi.JsComponents.Helpers.Common.ConvertFieldValueToStringArray(JsLib.UI.Field.GetValue(setting.sourceField));
+                visibility = reverseValues ? !fieldValues.some(item => sourceFieldValueAsArray.includes(item)) : fieldValues.some(item => sourceFieldValueAsArray.includes(item));
+            }
+
+            fieldset.targetFields.forEach(function (field) {
+                if (visibility) {
+                    fieldsToHide.push(field);
+                } else {
+                    fieldsToShow.push(field);
+                }
+            });
+        });
+
+        fieldsToHide = fieldsToHide.filter(function (field) {
+            return !fieldsToShow.includes(field);
+        });
+
+        fieldsToHide.forEach(function (field) {
+            let controls = JsLib.UI.Field.GetField(field, false)?.controls;
+            controls.forEach(function (control) {
+                control.setVisible(false);
+            });
+        });
+
+        fieldsToShow.forEach(function (field) {
+            let controls = JsLib.UI.Field.GetField(field, false)?.controls;
+            controls.forEach(function (control) {
+                control.setVisible(true);
+            });
+        });
+    };
+
+    /**
+    * Sets field required when value changes or on load
+    * @param {*} setting Settings array
+    */
+    const SetFieldsRequired = function (setting) {
+        let fieldsToSetRequired = [];
+        let fieldsToSetNonRequired = [];
+
+        setting.fieldSettings.forEach(function (fieldset) {
+            const fieldValues = fieldset.fieldValues;
+            const reverseValues = fieldset.reverseValues;
+            let required = true;
+
+            if (!JsLib.Helper.IsNullOrUndefined(setting.sourceField)) {
+                let sourceFieldValueAsArray = fmfi.JsComponents.Helpers.Common.ConvertFieldValueToStringArray(JsLib.UI.Field.GetValue(setting.sourceField));
+                required = reverseValues ? !fieldValues.some(item => sourceFieldValueAsArray.includes(item)) : fieldValues.some(item => sourceFieldValueAsArray.includes(item));
+            }
+
+            fieldset.targetFields.forEach(function (field) {
+                if (required) {
+                    fieldsToSetRequired.push(field);
+                } else {
+                    fieldsToSetNonRequired.push(field);
+                }
+            });
+        });
+
+        fieldsToSetRequired = fieldsToSetRequired.filter(function (field) {
+            return !fieldsToSetNonRequired.includes(field);
+        });
+
+        fieldsToSetRequired.forEach(function (field) {
+            JsLib.UI.Field.SetRequirementLevel(field, JsLib.Enums.FieldRequirement_Level.REQUIRED);
+        });
+
+        fieldsToSetNonRequired.forEach(function (field) {
+            JsLib.UI.Field.SetRequirementLevel(field, JsLib.Enums.FieldRequirement_Level.NONE);
+        });
+    };
+
+    /**
     * Autosaves Form when field value changes and then shows custom page.
     * @param {*} attribute One object from Settings array
     */
@@ -949,6 +1081,195 @@ fmfi.JsComponents.FieldHelpers = fmfi.JsComponents.FieldHelpers || function () {
                     JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute, function () {
                         AutoSaveOnChange(attribute);
                     });
+                });
+            }
+        },
+        LockFields: {
+            /**
+            * Adds OnChange listeners to the fields and runs logic
+            * 
+            * Form OnLoad event. This is the ONLY event you should call from your form.
+            * Full namespace is required when called via form: fmfi.JsComponents.FieldHelpers.LockFields.OnLoad
+            * Remember to pass the execution context.
+            * 
+            * @param {*} initExecutionContext Execution context
+            * @param {String} settingsJSON Settings JSON from "Comma separated list of parameters that will be passed to the function"-box in string format. Settings schema should follow component.JSONModel schema.
+            */
+            OnLoad: async function (initExecutionContext, settingsJSON) {
+                const component = {
+                    name: "FieldHelpers.LockFields",
+                    JSONModel: '[{"sourceField":"FIELD_SCHEMA_NAME", "fieldSettings":  [{"fieldValues": ["FIELD_VALUE"], "reverseValues": false, "targetFields": ["FIELD_SCHEMA_NAME"] }] }]'
+                };
+
+                /**
+                * Validates component settings and adds default values
+                * @param {Object} setting One setting from Settings array
+                */
+                const ValidateSetting = function (setting) {
+                    if (JsLib.Helper.IsNullOrUndefined(setting.fieldSettings) || setting.fieldSettings.length <= 0) {
+                        throw fmfi.JsComponents.Helpers.Common.CreateError(setting.sourceField + " fieldSettings parameter is missing or empty from the Settings JSON", component);
+                    }
+
+                    setting.fieldSettings.forEach(function (fieldset) {
+                        if (!JsLib.Helper.IsNullOrUndefined(fieldset.fieldValues) && fieldset.fieldValues.length >= 0) {
+                            fieldset.fieldValues = fieldset.fieldValues.map(a => !JsLib.Helper.IsNullOrUndefined(a) ? JsLib.Helper.RemoveParenthesisFromGUID(a.toString()).toLowerCase() : "");
+                        }
+
+                        if (JsLib.Helper.IsNullOrUndefined(fieldset.targetFields) || fieldset.targetFields.length <= 0) {
+                            throw fmfi.JsComponents.Helpers.Common.CreateError(setting.sourceField + " targetFields array is missing or empty from the Settings JSON", component);
+                        }
+
+                        if (JsLib.Helper.IsNullOrUndefined(fieldset.reverseValues)) {
+                            fieldset.reverseValues = false;
+                        }
+                    });
+
+                };
+
+                if (!initExecutionContext)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass execution context as first parameter"!', component);
+                executionContext = initExecutionContext;
+                if (!settingsJSON)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must add settings JSON to "Comma separated list of parameters that will be passed to the function"-box!', component);
+                if (!JsLib) {
+                    await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
+                }
+                let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
+
+                settings.forEach(function (setting) {
+                    ValidateSetting(setting);
+                    if (!JsLib.Helper.IsNullOrUndefined(setting.sourceField)) {
+                        JsLib.UI.Listeners.Field.RegisterOnChangeEvent(setting.sourceField, function () {
+                            LockFields(setting);
+                        });
+                    }
+                    LockFields(setting);
+                });
+            }
+        },
+        HideOrUnhideFields: {
+            /**
+            * Adds OnChange listeners to the fields and runs logic
+            * 
+            * Form OnLoad event. This is the ONLY event you should call from your form.
+            * Full namespace is required when called via form: fmfi.JsComponents.FieldHelpers.HideOrUnhideFields.OnLoad
+            * Remember to pass the execution context.
+            * 
+            * @param {*} initExecutionContext Execution context
+            * @param {String} settingsJSON Settings JSON from "Comma separated list of parameters that will be passed to the function"-box in string format. Settings schema should follow component.JSONModel schema.
+            */
+            OnLoad: async function (initExecutionContext, settingsJSON) {
+                const component = {
+                    name: "FieldHelpers.HideOrUnhideFields",
+                    JSONModel: '[{"sourceField":"FIELD_SCHEMA_NAME", "fieldSettings":  [{"fieldValues": ["FIELD_VALUE"], "reverseValues": false, "targetFields": ["FIELD_SCHEMA_NAME"] }] }]'
+                };
+
+                /**
+                * Validates component settings and adds default values
+                * @param {Object} setting One setting from Settings array
+                */
+                const ValidateSetting = function (setting) {
+                    if (JsLib.Helper.IsNullOrUndefined(setting.fieldSettings) || setting.fieldSettings.length <= 0) {
+                        throw fmfi.JsComponents.Helpers.Common.CreateError(setting.sourceField + " fieldSettings parameter is missing or empty from the Settings JSON", component);
+                    }
+
+                    setting.fieldSettings.forEach(function (fieldset) {
+                        if (!JsLib.Helper.IsNullOrUndefined(fieldset.fieldValues) && fieldset.fieldValues.length >= 0) {
+                            fieldset.fieldValues = fieldset.fieldValues.map(a => !JsLib.Helper.IsNullOrUndefined(a) ? JsLib.Helper.RemoveParenthesisFromGUID(a.toString()).toLowerCase() : "");
+                        }
+
+                        if (JsLib.Helper.IsNullOrUndefined(fieldset.targetFields) || fieldset.targetFields.length <= 0) {
+                            throw fmfi.JsComponents.Helpers.Common.CreateError(setting.sourceField + " targetFields array is missing or empty from the Settings JSON", component);
+                        }
+
+                        if (JsLib.Helper.IsNullOrUndefined(fieldset.reverseValues)) {
+                            fieldset.reverseValues = false;
+                        }
+                    });
+
+                };
+
+                if (!initExecutionContext)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass execution context as first parameter"!', component);
+                executionContext = initExecutionContext;
+                if (!settingsJSON)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must add settings JSON to "Comma separated list of parameters that will be passed to the function"-box!', component);
+                if (!JsLib) {
+                    await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
+                }
+                let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
+
+                settings.forEach(function (setting) {
+                    ValidateSetting(setting);
+                    if (!JsLib.Helper.IsNullOrUndefined(setting.sourceField)) {
+                        JsLib.UI.Listeners.Field.RegisterOnChangeEvent(setting.sourceField, function () {
+                            HideOrUnhideFields(setting);
+                        });
+                    }
+                    HideOrUnhideFields(setting);
+                });
+            }
+        },
+        SetFieldsRequired: {
+            /**
+            * Adds OnChange listeners to the fields and runs logic
+            * 
+            * Form OnLoad event. This is the ONLY event you should call from your form.
+            * Full namespace is required when called via form: fmfi.JsComponents.FieldHelpers.SetFieldsRequired.OnLoad
+            * Remember to pass the execution context.
+            * 
+            * @param {*} initExecutionContext Execution context
+            * @param {String} settingsJSON Settings JSON from "Comma separated list of parameters that will be passed to the function"-box in string format. Settings schema should follow component.JSONModel schema.
+            */
+            OnLoad: async function (initExecutionContext, settingsJSON) {
+                const component = {
+                    name: "FieldHelpers.SetFieldsRequired",
+                    JSONModel: '[{"sourceField":"FIELD_SCHEMA_NAME", "fieldSettings":  [{"fieldValues": ["FIELD_VALUE"], "reverseValues": false, "targetFields": ["FIELD_SCHEMA_NAME"] }] }]'
+                };
+
+                /**
+                * Validates component settings and adds default values
+                * @param {Object} setting One setting from Settings array
+                */
+                const ValidateSetting = function (setting) {
+                    if (JsLib.Helper.IsNullOrUndefined(setting.fieldSettings) || setting.fieldSettings.length <= 0) {
+                        throw fmfi.JsComponents.Helpers.Common.CreateError(setting.sourceField + " fieldSettings parameter is missing or empty from the Settings JSON", component);
+                    }
+
+                    setting.fieldSettings.forEach(function (fieldset) {
+                        if (!JsLib.Helper.IsNullOrUndefined(fieldset.fieldValues) && fieldset.fieldValues.length >= 0) {
+                            fieldset.fieldValues = fieldset.fieldValues.map(a => !JsLib.Helper.IsNullOrUndefined(a) ? JsLib.Helper.RemoveParenthesisFromGUID(a.toString()).toLowerCase() : "");
+                        }
+
+                        if (JsLib.Helper.IsNullOrUndefined(fieldset.targetFields) || fieldset.targetFields.length <= 0) {
+                            throw fmfi.JsComponents.Helpers.Common.CreateError(setting.sourceField + " targetFields array is missing or empty from the Settings JSON", component);
+                        }
+
+                        if (JsLib.Helper.IsNullOrUndefined(fieldset.reverseValues)) {
+                            fieldset.reverseValues = false;
+                        }
+                    });
+
+                };
+
+                if (!initExecutionContext)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass execution context as first parameter"!', component);
+                executionContext = initExecutionContext;
+                if (!settingsJSON)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must add settings JSON to "Comma separated list of parameters that will be passed to the function"-box!', component);
+                if (!JsLib) {
+                    await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
+                }
+                let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
+
+                settings.forEach(function (setting) {
+                    ValidateSetting(setting);
+                    if (!JsLib.Helper.IsNullOrUndefined(setting.sourceField)) {
+                        JsLib.UI.Listeners.Field.RegisterOnChangeEvent(setting.sourceField, function () {
+                            SetFieldsRequired(setting);
+                        });
+                    }
+                    SetFieldsRequired(setting);
                 });
             }
         },
@@ -1167,7 +1488,7 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
                 }
                 let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
                 settings.forEach(function (attribute) {
-                    ValidateSettingHideChoiceValuesIfNotCurrentValue(attribute);
+                    ValidateSettingHideChoiceValuesIfNotCurrentValue(attribute, component);
                     HideChoiceValuesIfNotCurrentValue(attribute);
                 });
             }
@@ -1199,7 +1520,7 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
                 }
                 let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
                 settings.forEach(function (attribute) {
-                    ValidateSettingShowChoiceValuesBasedOnFieldValue(attribute);
+                    ValidateSettingShowChoiceValuesBasedOnFieldValue(attribute, component);
                     JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.sourceField, function () {
                         ShowChoiceValuesBasedOnFieldValue(attribute, true);
                     });
@@ -1658,6 +1979,262 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
                     } catch (error) {
                         ProcessErrorResponse(error);
                     }
+                }
+            }
+        }
+    };
+}();
+
+/**
+ * Contains a feature which can create a copy of the row
+ */
+fmfi.JsComponents.CreateCopyOfTheRow = fmfi.JsComponents.CreateCopyOfTheRow || function () {
+    let gridControl;
+    /**
+     * Retrieves selected record from api and creating parameter object of it
+     * @param {*} entityName Schema name of entity that is copied
+     * @param {*} entityId  Id of row that is cipied
+     * @param {*} settings Configuration setting of the function
+     * @returns 
+     */
+    const populateEntityFormParameters = async function (entityName, entityId, settings) {
+        let parameters = {};
+        let currentRow = await JsLib.WebAPI.CRUD.RetrieveByIDSync(entityName, JsLib.Helper.RemoveParenthesisFromGUID(entityId));
+        const entityMetadata = await JsLib.Context.GetEntityMetadata(entityName);
+
+        if (currentRow && entityMetadata && entityMetadata.value && entityMetadata.value.length > 0 && entityMetadata.value[0].Attributes) {
+            for (const [key, value] of Object.entries(currentRow)) {
+                if (key.includes("@") || !value) {
+                    continue;
+                }
+
+                const logicalName = key.startsWith("_") && key.endsWith("_value") ? key.substring(1, key.length - 6) : key;
+
+                if (settings.ignoreFields.includes(logicalName)) {
+                    continue;
+                }
+
+                let attributeMetadata = entityMetadata.value[0].Attributes.find((a) => a.LogicalName === logicalName);
+
+                if (attributeMetadata && attributeMetadata.IsValidForCreate === true && !attributeMetadata.AutoNumberFormat && attributeMetadata.AttributeType !== "Uniqueidentifier" && attributeMetadata.AttributeType !== "Status") {
+                    if (attributeMetadata.AttributeType === "Lookup" || attributeMetadata.AttributeType === "Owner" || attributeMetadata.AttributeType === "Customer") {
+                        let lookupValue = [
+                            {
+                                id: value,
+                                name: currentRow[key + "@OData.Community.Display.V1.FormattedValue"],
+                                entityType: currentRow[key + "@Microsoft.Dynamics.CRM.lookuplogicalname"],
+                            }];
+                        parameters[logicalName] = lookupValue;
+                    } else {
+                        parameters[key] = value;
+                    }
+                }
+            }
+        }
+        return parameters;
+    };
+
+    return {
+        Ribbon: {
+            /**
+            * Copy row on form ribbon context
+            * 
+            * Ribbon button command
+            * Full namespace is required when called via form: fmfi.JsComponents.CreateCopyOfTheRow.Ribbon.FormCreateDraftCopy
+            * Remember to add command parameters.
+            * 
+            * @param {*} initFormContext Primary control
+            * @param {*} settingsJSON Settings JSON. Settings schema should follow component.JSONModel schema.
+            */
+            FormCreateDraftCopy: async function (initFormContext, settingsJSON) {
+                const component = {
+                    name: "CreateCopyOfTheRow.FormCreateDraftCopy",
+                    JSONModel: '{"ignoreFields": ["FIELDSCHEMANAME"], "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "formId": "FORMGUID", "useQuickCreateForm": false }'
+                };
+
+                /**
+                * Validates component settings and adds default values
+                * @param {Object} setting One setting from Settings array
+                */
+                const ValidateSetting = function (setting) {
+                    if (JsLib.Helper.IsNullOrUndefined(setting.ignoreFields)) {
+                        setting.ignoreFields = [];
+                    }
+                    if (JsLib.Helper.IsNullOrUndefined(setting.confirmationText)) {
+                        setting.confirmationText = JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "CreateCopyOfTheRow.ConfirmationText");
+                    }
+                    if (JsLib.Helper.IsNullOrUndefined(setting.askConfirmation)) {
+                        setting.askConfirmation = true;
+                    }
+                    if (JsLib.Helper.IsNullOrUndefined(setting.useQuickCreateForm)) {
+                        setting.useQuickCreateForm = false;
+                    }
+                    if (!JsLib.Helper.IsNullOrUndefined(setting.formId)) {
+                        setting.formId = JsLib.Helper.RemoveParenthesisFromGUID(setting.formId).toLowerCase();
+                    }
+                };
+                executionContext = initFormContext;
+                if (!executionContext)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass Primary control as first parameter"!', component);
+
+                if (!settingsJSON)
+                    settingsJSON = "{}";
+
+                if (!JsLib) {
+                    await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
+                }
+                let attribute = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
+
+                ValidateSetting(attribute);
+
+                JsLib.Record.Save(undefined, async function () {
+                    if (attribute.askConfirmation) {
+                        JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "CreateCopyOfTheRow.ConfirmationHeader"),
+                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
+                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, async function (result) {
+                                if (!result.confirmed) return;
+                                JsLib.UI.Form.OpenFormNewRecord(JsLib.Record.GetEntityName(), attribute.useQuickCreateForm, false, await populateEntityFormParameters(JsLib.Record.GetEntityName(), JsLib.Record.GetId(true), attribute), attribute.formId);
+                            });
+                    } else {
+                        JsLib.UI.Form.OpenFormNewRecord(JsLib.Record.GetEntityName(), attribute.useQuickCreateForm, false, await populateEntityFormParameters(JsLib.Record.GetEntityName(), JsLib.Record.GetId(true), attribute), attribute.formId);
+                    }
+                }, function () { });
+            },
+            /**
+            * Copy row on subgrid context
+            * 
+            * Ribbon button command
+            * Full namespace is required when called via form: fmfi.JsComponents.CreateCopyOfTheRow.Ribbon.SubGridCreateDraftCopy
+            * Remember to add command parameters.
+            * 
+            * @param {*} initExecutionContext Primary control
+            * @param {*} selectedRecordRefs Selected record references
+            * @param {String} settingsJSON  Settings JSON. Settings schema should follow component.JSONModel schema.
+            */
+            SubGridCreateDraftCopy: async function (initFormContext, selectedRecordRefs, settingsJSON) {
+                const component = {
+                    name: "CreateCopyOfTheRow.SubGridCreateDraftCopy",
+                    JSONModel: '{"ignoreFields": ["FIELDSCHEMANAME"], "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "formId": "FORMGUID", "useQuickCreateForm": false }'
+                };
+
+                /**
+                * Validates component settings and adds default values
+                * @param {Object} attribute One setting from Settings array
+                */
+                const ValidateSetting = function (setting) {
+                    if (JsLib.Helper.IsNullOrUndefined(setting.ignoreFields)) {
+                        setting.ignoreFields = [];
+                    }
+                    if (JsLib.Helper.IsNullOrUndefined(setting.confirmationText)) {
+                        setting.confirmationText = JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "CreateCopyOfTheRow.ConfirmationText");
+                    }
+                    if (JsLib.Helper.IsNullOrUndefined(setting.askConfirmation)) {
+                        setting.askConfirmation = true;
+                    }
+                    if (JsLib.Helper.IsNullOrUndefined(setting.useQuickCreateForm)) {
+                        setting.useQuickCreateForm = false;
+                    }
+                    if (!JsLib.Helper.IsNullOrUndefined(setting.formId)) {
+                        setting.formId = JsLib.Helper.RemoveParenthesisFromGUID(setting.formId).toLowerCase();
+                    }
+                };
+
+                executionContext = initFormContext;
+                if (!executionContext)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass primary control as first parameter"!', component);
+                if (!selectedRecordRefs)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass selectedRecordRefs as second parameter"!', component);
+                if (selectedRecordRefs.length !== 1)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must select only one row"!', component);
+                if (!settingsJSON)
+                    settingsJSON = "{}";
+
+                if (!JsLib) {
+                    await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
+                }
+                let attribute = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
+
+                ValidateSetting(attribute);
+
+                JsLib.Record.Save(undefined, async function () {
+                    if (attribute.askConfirmation) {
+                        JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "CreateCopyOfTheRow.ConfirmationHeader"),
+                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
+                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, async function (result) {
+                                if (!result.confirmed) return;
+                                JsLib.UI.Form.OpenFormNewRecord(selectedRecordRefs[0].TypeName, attribute.useQuickCreateForm, false, await populateEntityFormParameters(selectedRecordRefs[0].TypeName, selectedRecordRefs[0].Id, attribute), attribute.formId);
+
+                            });
+                    } else {
+                        JsLib.UI.Form.OpenFormNewRecord(selectedRecordRefs[0].TypeName, attribute.useQuickCreateForm, false, await populateEntityFormParameters(selectedRecordRefs[0].TypeName, selectedRecordRefs[0].Id, attribute), attribute.formId);
+                    }
+                }, function () { });
+
+            },
+            /**
+            * Copy row on grid context
+            * 
+            * Ribbon button command
+            * Full namespace is required when called via form: fmfi.JsComponents.CreateCopyOfTheRow.Ribbon.GridCreateDraftCopy
+            * Remember to add command parameters.
+            * 
+            * @param {*} initExecutionContext Primary control
+            * @param {*} selectedRecordRefs Selected record references
+            * @param {String} settingsJSON  Settings JSON. Settings schema should follow component.JSONModel schema.
+            */
+            GridCreateDraftCopy: async function (initGridControl, selectedRecordRefs, settingsJSON) {
+                const component = {
+                    name: "CreateCopyOfTheRow.GridCreateDraftCopy",
+                    JSONModel: '{"ignoreFields": ["FIELDSCHEMANAME"], "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "formId": "FORMGUID", "useQuickCreateForm": false }'
+                };
+
+                /**
+                * Validates component settings and adds default values
+                * @param {Object} attribute One setting from Settings array
+                */
+                const ValidateSetting = function (setting) {
+                    if (JsLib.Helper.IsNullOrUndefined(setting.ignoreFields)) {
+                        setting.ignoreFields = [];
+                    }
+                    if (JsLib.Helper.IsNullOrUndefined(setting.confirmationText)) {
+                        setting.confirmationText = JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "CreateCopyOfTheRow.ConfirmationText");
+                    }
+                    if (JsLib.Helper.IsNullOrUndefined(setting.askConfirmation)) {
+                        setting.askConfirmation = true;
+                    }
+                    if (JsLib.Helper.IsNullOrUndefined(setting.useQuickCreateForm)) {
+                        setting.useQuickCreateForm = false;
+                    }
+                    if (!JsLib.Helper.IsNullOrUndefined(setting.formId)) {
+                        setting.formId = JsLib.Helper.RemoveParenthesisFromGUID(setting.formId).toLowerCase();
+                    }
+                };
+                gridControl = initGridControl;
+
+                if (!gridControl)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass Primary Control as first parameter"!', component);
+                if (!selectedRecordRefs)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must "Pass selectedRecordRefs as second parameter"!', component);
+                if (selectedRecordRefs.length !== 1)
+                    throw fmfi.JsComponents.Helpers.Common.CreateError('You must select only one row"!', component);
+                if (!settingsJSON)
+                    settingsJSON = "{}";
+                if (!JsLib) {
+                    await fmfi.JsComponents.Helpers.JSLIBLoader.Load();
+                }
+                let attribute = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
+
+                ValidateSetting(attribute);
+
+                if (attribute.askConfirmation) {
+                    JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "CreateCopyOfTheRow.ConfirmationHeader"),
+                        JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
+                        JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, async function (result) {
+                            if (!result.confirmed) return;
+                            JsLib.UI.Form.OpenFormNewRecord(selectedRecordRefs[0].TypeName, attribute.useQuickCreateForm, false, await populateEntityFormParameters(selectedRecordRefs[0].TypeName, selectedRecordRefs[0].Id, attribute), attribute.formId);
+                        });
+                } else {
+                    JsLib.UI.Form.OpenFormNewRecord(selectedRecordRefs[0].TypeName, attribute.useQuickCreateForm, false, await populateEntityFormParameters(selectedRecordRefs[0].TypeName, selectedRecordRefs[0].Id, attribute), attribute.formId);
                 }
             }
         }
