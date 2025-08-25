@@ -30,6 +30,11 @@ export class SSNValidator implements ComponentFramework.StandardControl<IInputs,
 	/**Notification from Property as Config is stored here */
 	private sNotificationToUser: string | null;
 
+	private isValidationEnabled: boolean = true;
+
+		/**Flag to track if initial value has been set after property loading */
+	private bInitialValueSet: boolean = false;
+
 	/** Static Variables */
 	public sDefaultLabel = "";
 	public sDefaultErrorLabel = "Incorrect Format";
@@ -75,18 +80,19 @@ export class SSNValidator implements ComponentFramework.StandardControl<IInputs,
 
 		if (this.isValid(context.parameters.textValueToProcess)) {
 			this.sInputValueToProcess = context.parameters.textValueToProcess.raw;
-			sInputValue = context.parameters.textValueToProcess.formatted ?
-				context.parameters.textValueToProcess.formatted : "";
 		}
 
 		if (this.isValid(context.parameters.notificationToUser)) {
-			this.sNotificationToUser = context.parameters.notificationToUser.raw;
+			this.sNotificationToUser = context.parameters.notificationToUser.raw!;
+		}
+
+		// Check if validation is enabled. Defaulted to true in the start of the class.
+		if (this.isValid(context.parameters.validationEnabled.raw)) {
+			this.isValidationEnabled = context.parameters.validationEnabled.raw === true;
 		}
 
 		// Set the control value on initialization
-		this.objInputElement.setAttribute("value", sInputValue);
-
-		//this.processForRegex(sInputValue as string);//Needed to run only on load of Control/Form
+		this.objInputElement.setAttribute("value", "");
 
 		// appending the HTML elements to the custom control's HTML container element
 		this.objContainer.appendChild(this.objInputElement);
@@ -114,7 +120,62 @@ export class SSNValidator implements ComponentFramework.StandardControl<IInputs,
 
 		// storing the latest context from the control
 		this.objContext = context;
+
+
+		// Check if validation is enabled. Defaulted to true in the start of the class.
+		const previousValidationState = this.isValidationEnabled;
+		if (this.isValid(context.parameters.validationEnabled.raw)) {
+			this.isValidationEnabled = context.parameters.validationEnabled.raw === true;
+		}
+
+		// Handle textValueToProcess property loading and value setting
+		if (this.isValid(context.parameters.textValueToProcess)) {
+			// Check if the property is still loading
+			const isPropertyLoading = (context.parameters.textValueToProcess as any).isPropertyLoading;
+
+			if (!isPropertyLoading) {
+				// Property has finished loading, safe to use the value
+				const currentValue = context.parameters.textValueToProcess.raw || "";
+				const formattedValue = context.parameters.textValueToProcess.formatted || currentValue;
+
+				// Only update the input element if:
+				// 1. Initial value hasn't been set yet, OR
+				// 2. The property value has changed from an external source (not user input)
+				//    AND the input element doesn't currently have focus (user is not typing)
+				const hasInputFocus = document.activeElement === this.objInputElement;
+
+				if (!this.bInitialValueSet) {
+					// Initial load - set the value
+					this.sInputValueToProcess = currentValue;
+					this.objInputElement.value = formattedValue;
+					this.bInitialValueSet = true;
+
+					// Trigger regex validation when value changes from external source
+					this.processForSSNValidation(this.sInputValueToProcess);
+				} else if (this.sInputValueToProcess !== currentValue && !hasInputFocus) {
+					// Value changed externally and user is not currently typing
+					this.sInputValueToProcess = currentValue;
+					this.objInputElement.value = formattedValue;
+					// Trigger regex validation when value changes from external source
+					this.processForSSNValidation(this.sInputValueToProcess);
+				}
+				else if (!previousValidationState && this.isValidationEnabled && this.bInitialValueSet) {
+
+					// set also textValueToProcess dirty to ensure that the output is updated and form validations are triggered when saved
+					this.sInputValueToProcess = currentValue;
+					this.objInputElement.value = formattedValue;	
+					this.processForSSNValidation(this.sInputValueToProcess);
+					this._notifyOutputChanged();
+				}
+				// If user has focus (is typing), don't update the input element to avoid interrupting their input
+			}
+			else {
+				// Property is still loading, we do not update the value yet
+			}
+		}
 	}
+
+	
 
 	/**
 	 * Called when any value change occurs in Input Element TextBox
@@ -133,13 +194,21 @@ export class SSNValidator implements ComponentFramework.StandardControl<IInputs,
 		var sUniqueId = sNotification + "_UniqueId";
 
 		var objClearNotification = null;
-		var objSetNotification = null;
+		var objSetNotification = null;	   
 
 		objClearNotification = this.GetFunctionFromContextUtils("clearNotification");
 		objSetNotification = this.GetFunctionFromContextUtils("setNotification");
 		if (this.isValid(objClearNotification) && this.isValid(objSetNotification)) {
 			objClearNotification = objClearNotification as Function;
 			objSetNotification = objSetNotification as Function;
+
+	 // If validation is disabled, do not process regex validation
+		if (!this.isValidationEnabled) {
+			// Clear any existing notifications
+			objClearNotification(sUniqueId);
+			return;
+		}
+
 			if (this.isValid(sValueToProcess) &&
 				!this.validateFinnishSSN(sValueToProcess)) {
 				objSetNotification(sNotification, sUniqueId);

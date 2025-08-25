@@ -13,6 +13,9 @@
     <property name="notificationToUser" display-name-key="Field Notification"
     description-key="Field Notification To User. Default Message will be Incorrect Format."
     of-type="SingleLine.TextArea" usage="input" required="false" />
+        <property name="validationEnabled" display-name-key="Validation Enabled"
+      description-key="Enable or Disable Validation of Input Text. Default is true."
+      of-type="TwoOptions" usage="input" required="false" default-value="true" />
      <!--
       Property node's of-type attribute can be of-type-group attribute.
       Example:

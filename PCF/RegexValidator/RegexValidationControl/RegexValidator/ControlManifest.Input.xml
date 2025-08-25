@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest>
   <control namespace="Fellowmind" constructor="RegexValidator"
-    version="1.0.2" display-name-key="FM Regex Validator"
+
+    version="1.2.7" display-name-key="FM Regex Validator"
+
     description-key="Apply Regex Validation on Text Field" control-type="standard">
     <!--
       A type-group to accept all required and supported Text Field Types
@@ -28,6 +30,9 @@
     <property name="notificationToUser" display-name-key="Field Notification"
       description-key="Field Notification To User. Default Message will be Incorrect Format."
       of-type="SingleLine.TextArea" usage="input" required="false" />
+    <property name="validationEnabled" display-name-key="Validation Enabled"
+      description-key="Enable or Disable Validation of Input Text. Default is true."
+      of-type="TwoOptions" usage="input" required="false" default-value="true" />
 
     <resources>
       <code path="index.ts" order="1" />
