@@ -4,7 +4,6 @@
     namespace="Fellowmind" 
     constructor="HierarchyPCFControl" 
     version="1.1.0" 
-
     display-name-key="Hierarchy Control" 
     description-key="HierarchyPCFControl description" 
     control-type="standard" 
