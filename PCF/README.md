@@ -18,33 +18,6 @@ UNIVERSAL      demo@go365demo.onmicrosoft.com        Public User            FMFI
 
 ### Publish for development
 
-```bash
-pac auth create
-pac auth create --url https://fmfiproductdevelopment.crm4.dynamics.com/
-```
-
-Update ControlManifest.Input.xml version
-
-pac pcf push --publisher-prefix fmfi
-
-### Publish for production
-The directory PCFToolkit contains the solution for production. Make sure to update the version in the ControlManifest.Input.xml file for each component.
-
-You can use dotnet to publish the solution.
-
-```bash
-dotnet build --configuration Release
-```
-
-This will output the solution in the bin/Release folder.
-
-If you want to get both the managed (production release) and the the unmanaged (for development) solution, you can use the following command:
-
-```bash
-dotnet build --configuration Both
-```
-
-This will output the solution in the bin/Both folder.
-
-### IMPORTANT
-IMPORT ONLY UNMANAGED-solution to dev-environment. Otherwise components cannot be exported with the main FM Developer Kit -solution.
+PCF Components have DevOps-pipeline that is triggering from the master -branch and deploying latest version automatically to the development environment.
+https://dev.azure.com/godemo/FM%20Product%20development%20ALM/_build?definitionId=49 
+Enjoy!
