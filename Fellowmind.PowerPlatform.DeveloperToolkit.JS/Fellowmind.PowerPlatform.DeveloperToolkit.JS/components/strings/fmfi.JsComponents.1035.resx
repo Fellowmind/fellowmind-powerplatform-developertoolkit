@@ -149,6 +149,14 @@
     <value>Toiminto suoritettu</value>
     <comment/>
   </data>
+  <data name="CreateCopyOfTheRow.ConfirmationHeader" xml:space="preserve">
+    <value>Vahvista</value>
+    <comment/>
+  </data>
+  <data name="CreateCopyOfTheRow.ConfirmationText" xml:space="preserve">
+    <value>Haluatko varmasti tehdä kopion?</value>
+    <comment/>
+  </data>
   <data name="Yes" xml:space="preserve">
     <value>Kyllä</value>
     <comment/>

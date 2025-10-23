@@ -1997,7 +1997,7 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
             }
         },
         CustomPage: {
-            OpenFromFormRibbon: function (entityName, entityId, customPageLogicalName, customPageType, widthInPercents, heightInPercents, dialogTitle) {
+            OpenFromFormRibbon: function (entityName, entityId, customPageLogicalName, customPageType, widthInPercents, heightInPercents, dialogTitle, successCallBack, errorCallBack) {
                 /// <summary>
                 /// Navigates to custom page from a form ribbon button.
                 /// </summary>
@@ -2022,6 +2022,12 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                  /// <param name="dialogTitle" type="string" required="false" >
                 ///  Custom title when type of the custom page is either a dialog or a side dialog.
                 /// </param>
+                /// <param name="successCallBack" type="function" required="false" >
+                ///  Custom successcallback function that should be executed after the custom page is closed successfully. Required if errroCallBack has been defined.
+                /// </param>
+                /// <param name="errorCallBack" type="function" required="false" >
+                ///  Custom errorcallback function that should be executed after the custom page is not closed successfully. Required if successCallBack has been defined.
+                /// </param>
 
                 if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(entityName))
                     throw "UI.CustomPage.OpenFromFormRibbon: parameter 'entityName' must be defined!";
@@ -2033,7 +2039,16 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                     throw "UI.CustomPage.OpenFromFormRibbon: parameter 'customPageLogicalName' must be defined!";
 
                 if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(customPageType))
-                    throw "UI.CustomPage.OpenFromFormRibbon: parameter 'customPageType' must be defined!";               
+                    throw "UI.CustomPage.OpenFromFormRibbon: parameter 'customPageType' must be defined!";      
+
+                if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(customPageType))
+                    throw "UI.CustomPage.OpenFromFormRibbon: parameter 'customPageType' must be defined!";    
+
+                if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(successCallBack) && !fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(errorCallBack))
+                    throw "UI.CustomPage.OpenFromFormRibbon: parameter 'successCallBack' must be defined when parameter 'errorCallBack' has been defined!";    
+
+                if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(errorCallBack) && !fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(successCallBack))
+                    throw "UI.CustomPage.OpenFromFormRibbon: parameter 'errorCallBack' must be defined when parameter 'successCallBack' has been defined!";
 
                 if (Array.isArray(entityId)) {
                     entityId[0] = fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.RemoveParenthesisFromGUID(entityId[0]);
@@ -2108,19 +2123,23 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                         break;
                 }
 
-                Xrm.Navigation.navigateTo(pageInput, navigationOptions, function () {
-                    fmfi.PowerPlatform.DeveloperToolkit.JsLib.Logger.Info("Custom page '" + customPageLogicalName + "' opened succesfully for entity '" + entityName + "' with id '" + entityId + "'.");
-                }, function (error) {
-                    fmfi.PowerPlatform.DeveloperToolkit.JsLib.Logger.Info("Error occurred when opening custom page '" + customPageLogicalName + "' for entity '" + entityName + "' with id '" + entityId + "': " + error);
+                Xrm.Navigation.navigateTo(pageInput, navigationOptions).then(function () {
+                    if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(successCallBack)) {
+                        successCallBack();
+                    }
+                }, function () {
+                    if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(errorCallBack)) {
+                        errorCallBack();
+                    }
                 });
             },
-            OpenFromGridRibbon: function (entityReferences, customPageLogicalName, customPageType, widthInPercents, heightInPercents, dialogTitle) {
+            OpenFromGridRibbon: function (entityReferences, customPageLogicalName, customPageType, widthInPercents, heightInPercents, dialogTitle, successCallBack, errorCallBack) {
                 /// <summary>
                 /// Navigates to custom page from a subgrid ribbon button.
                 /// </summary>
                 /// <param name="entityReferences" type="array of entityreferences" required="true" >
                 ///  Selected record from the subgrid of the entity in which context the Custom Page will be opened. Eventhoug this is an array, only the first element will be used.
-                ///  If multiple records has been selected, an error is thrown. 
+                ///  If multiple records has been selected, an error is thrown.
                 /// </param>
                 /// <param name="customPageLogicalName" type="string" required="true" >
                 ///  Logical name of the Custom Page that should be opened.
@@ -2136,6 +2155,12 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                 /// </param>
                 /// <param name="dialogTitle" type="string" required="false" >
                 ///  Custom title when type of the custom page is either a dialog or a side dialog.
+                /// </param>
+                /// <param name="successCallBack" type="function" required="false" >
+                ///  Custom successcallback function that should be executed after the custom page is closed successfully. Required if errroCallBack has been defined.
+                /// </param>
+                /// <param name="errorCallBack" type="function" required="false" >
+                ///  Custom errorcallback function that should be executed after the custom page is not closed successfully. Required if successCallBack has been defined.
                 /// </param>
 
                 if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(entityReferences))
@@ -2218,10 +2243,14 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                         break;
                 }
 
-                Xrm.Navigation.navigateTo(pageInput, navigationOptions, function () {
-                    fmfi.PowerPlatform.DeveloperToolkit.JsLib.Logger.Info("Custom page '" + customPageLogicalName + "' opened succesfully for entity '" + entityName + "' with id '" + entityId + "'.");
-                }, function (error) {
-                    fmfi.PowerPlatform.DeveloperToolkit.JsLib.Logger.Info("Error occurred when opening custom page '" + customPageLogicalName + "' for entity references '" + JSON.stringify(entityReferences) + "': " + error);
+                Xrm.Navigation.navigateTo(pageInput, navigationOptions).then(function () {
+                    if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(successCallBack)) {
+                        successCallBack();
+                    }
+                }, function () {
+                    if (!fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(errorCallBack)) {
+                        errorCallBack();
+                    }
                 });
             }
         }

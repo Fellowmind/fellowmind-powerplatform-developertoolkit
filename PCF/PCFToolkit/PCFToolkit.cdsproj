@@ -58,6 +58,9 @@
     <ProjectReference Include="..\CustomDatePicker\Fellowmind.CustomDatePicker.pcfproj" />
     <ProjectReference Include="..\Year-picker\pcf.pcfproj" />
     <ProjectReference Include="..\RegexValidator\RegexValidationControl\Fellowmind.RegexValidator.pcfproj" />
+    <ProjectReference Include="..\Hierarchy\HierarchyPCFControl.pcfproj" />
+    <ProjectReference Include="..\OpenHierarchyButton\OpenHierarchyButton.pcfproj" />
+    <ProjectReference Include="..\CustomLabel\CustomLabel.pcfproj" />
   </ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
