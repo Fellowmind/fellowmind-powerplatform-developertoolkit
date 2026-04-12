@@ -11,6 +11,7 @@
     <Name>Fellowmind.RegexValidator</Name>
     <ProjectGuid>5f4fc4ba-ae62-42c5-8e73-214058fa3c79</ProjectGuid>
     <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
+    <PcfBuildMode>production</PcfBuildMode>
   </PropertyGroup>
 
   <PropertyGroup>

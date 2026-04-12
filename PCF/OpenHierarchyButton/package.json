@@ -14,7 +14,7 @@
     "publish": "pac pcf push -pp fmfi"
   },
   "dependencies": {
-    "@fluentui/react": "^8.122.15"
+    "@fluentui/react": "8.121.0"
   },
   "devDependencies": {
     "@microsoft/eslint-plugin-power-apps": "^0.2.51",

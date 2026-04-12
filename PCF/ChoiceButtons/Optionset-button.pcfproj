@@ -11,6 +11,7 @@
     <Name>Optionset-button</Name>
     <ProjectGuid>5974ea8b-1ad9-47e6-a2f5-1cb00d882c63</ProjectGuid>
     <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
+    <PcfBuildMode>production</PcfBuildMode>
   </PropertyGroup>
 
   <PropertyGroup>

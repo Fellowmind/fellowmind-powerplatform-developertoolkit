@@ -7,7 +7,7 @@ const extractColumns = (cardXml: string, relationship: RelationshipInfo, attribu
 
   const controls = Array.from(xmlDoc.getElementsByTagName("control")).filter((control) => {
     const cell = control.closest("cell");
-    return cell?.getAttribute("visible") != "false" && control.getAttribute("datafieldname")
+    return cell?.getAttribute("visible") !== "false" && control.getAttribute("datafieldname")
   });
 
   const columns = controls.length

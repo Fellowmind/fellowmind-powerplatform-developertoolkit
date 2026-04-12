@@ -254,8 +254,8 @@ export class SSNValidator implements ComponentFramework.StandardControl<IInputs,
 
 	public isValid(objectToProcess: any): boolean {
 		var bIsObjectValid: boolean = false;
-		if (objectToProcess != null && objectToProcess !== "" &&
-			objectToProcess != undefined && objectToProcess !== "undefined") {
+		if (objectToProcess !== null && objectToProcess !== "" &&
+			objectToProcess !== undefined && objectToProcess !== "undefined") {
 			bIsObjectValid = true;
 		}
 		return bIsObjectValid;

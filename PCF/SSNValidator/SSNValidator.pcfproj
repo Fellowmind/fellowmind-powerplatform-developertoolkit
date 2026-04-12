@@ -11,6 +11,7 @@
     <Name>SSNValidator</Name>
     <ProjectGuid>1bf42531-32fb-4968-9f09-b84d881f09b8</ProjectGuid>
     <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
+    <PcfBuildMode>production</PcfBuildMode>
   </PropertyGroup>
 
   <PropertyGroup>

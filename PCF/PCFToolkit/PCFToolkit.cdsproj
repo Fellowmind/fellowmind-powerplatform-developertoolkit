@@ -61,6 +61,9 @@
     <ProjectReference Include="..\Hierarchy\HierarchyPCFControl.pcfproj" />
     <ProjectReference Include="..\OpenHierarchyButton\OpenHierarchyButton.pcfproj" />
     <ProjectReference Include="..\CustomLabel\CustomLabel.pcfproj" />
+    <ProjectReference Include="..\ModernFormButton\ModernFormButton.pcfproj" />
+    <ProjectReference Include="..\ManyToManyLookup\ManyToManyLookup.pcfproj" />
+    <ProjectReference Include="..\EnhancedTextInput\EnhancedTextInput.pcfproj" />
   </ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />

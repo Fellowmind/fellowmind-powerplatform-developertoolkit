@@ -273,9 +273,9 @@ export class RegexValidator implements ComponentFramework.StandardControl<IInput
 
 	public isValid(objectToProcess: any): boolean {
 		let bIsObjectValid: boolean = false;
-		if (objectToProcess != null
+		if (objectToProcess !== null
 			&& objectToProcess !== ""
-			&& objectToProcess != undefined
+			&& objectToProcess !== undefined
 			&& objectToProcess !== "undefined"
 			&& (!objectToProcess.raw || this.isValid(objectToProcess.raw))) {
 			bIsObjectValid = true;

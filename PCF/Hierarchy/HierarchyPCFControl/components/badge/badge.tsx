@@ -47,7 +47,7 @@ const Badge = memo(({ name, etn, id, isCollapsed, size = PersonaSize.size40, nam
   );
 });
 
-Badge.displayName == "Badge"
+Badge.displayName = "Badge";
 export { Badge };
 
 const styles: Record<string, React.CSSProperties> = {

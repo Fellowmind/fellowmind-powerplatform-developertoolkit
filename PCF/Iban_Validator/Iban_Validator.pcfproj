@@ -11,6 +11,7 @@
     <Name>Iban_Validator</Name>
     <ProjectGuid>92e0991e-42f5-4d86-a1b4-b32a0cbfb98d</ProjectGuid>
     <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
+    <PcfBuildMode>production</PcfBuildMode>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -11,6 +11,7 @@
     <Name>StarRating</Name>
     <ProjectGuid>4f14c7f9-21cd-41c6-af4b-45d550171664</ProjectGuid>
     <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
+    <PcfBuildMode>production</PcfBuildMode>
   </PropertyGroup>
 
   <PropertyGroup>

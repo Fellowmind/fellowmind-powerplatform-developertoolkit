@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="Fellowmind" constructor="ManyToManyLookup" version="0.0.1" display-name-key="FM ManyToMany Lookup" description-key="Tag picker for N:N relationships on a subgrid." control-type="virtual">
+    <external-service-usage enabled="false" />
+    <property name="addMoreText" display-name-key="Add More Text" description-key="Text displayed next to the search icon button. Defaults to Add more if left empty." of-type="SingleLine.Text" usage="input" required="false" />
+    <data-set name="records" display-name-key="Associated Records" />
+    <resources>
+      <code path="index.ts" order="1"/>
+      <platform-library name="React" version="16.8.6" />
+      <platform-library name="Fluent" version="8.104.1" />
+    </resources>
+    <feature-usage>
+      <uses-feature name="WebAPI" required="true" />
+      <uses-feature name="Utility" required="true" />
+    </feature-usage>
+  </control>
+</manifest>

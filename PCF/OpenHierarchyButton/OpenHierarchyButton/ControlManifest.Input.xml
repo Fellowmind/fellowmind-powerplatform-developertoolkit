@@ -27,6 +27,8 @@
      <property name="scriptName" display-name-key="Script name" description-key="Name of the script used in the component (field in fmfi_developerkitconfiguration entity)" of-type="SingleLine.Text" usage="input" required="false" />
     <resources>
       <code path="index.ts" order="1"/>
+      <platform-library name="React" version="16.8.6" />
+      <platform-library name="Fluent" version="8.121.0" />
       <!-- UNCOMMENT TO ADD MORE RESOURCES
       <css path="css/OpenHierarchyButton.css" order="1" />
       <resx path="strings/OpenHierarchyButton.1033.resx" version="1.0.0" />

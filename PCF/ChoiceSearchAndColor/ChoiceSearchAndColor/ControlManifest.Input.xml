@@ -33,6 +33,8 @@
     -->
     <resources>
       <code path="index.ts" order="1"/>
+      <platform-library name="React" version="16.8.6" />
+      <platform-library name="Fluent" version="8.104.1" />
       <!-- UNCOMMENT TO ADD MORE RESOURCES
       <css path="css/ChoiceSearchAndColor.css" order="1" />
       <resx path="strings/ChoiceSearchAndColor.1033.resx" version="1.0.0" />
