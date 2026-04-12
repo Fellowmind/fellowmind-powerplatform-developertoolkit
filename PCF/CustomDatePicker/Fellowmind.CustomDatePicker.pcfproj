@@ -11,6 +11,7 @@
     <Name>Fellowmind.CustomDatePicker</Name>
     <ProjectGuid>3995777f-15e8-402c-ba96-0280b7d9f746</ProjectGuid>
     <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
+    <PcfBuildMode>production</PcfBuildMode>
   </PropertyGroup>
 
   <PropertyGroup>

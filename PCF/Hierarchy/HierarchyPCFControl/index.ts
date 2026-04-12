@@ -1,7 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { IInputs, IOutputs } from "./generated/ManifestTypes";
-import "@xyflow/react/dist/style.css";
 import App from "./app";
 
 export class HierarchyPCFControl
@@ -33,14 +32,11 @@ export class HierarchyPCFControl
       appId: (context as any).page.appId,
     } as any;
 
-    console.log("props: ", props);
-
     if (window.location.href.includes("localhost")) {
       props.entityName = "account";
       props.entityId = "3c1773f2-30e5-ee11-904d-000d3a43f82f";
       // props.entityId = "e53ca800-8171-e911-a81d-000d3a3a6ca3";
     }
-    console.log("Context: ", context);
     ReactDOM.render(React.createElement(App, props), this.container);
   }
 

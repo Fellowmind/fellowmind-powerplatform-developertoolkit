@@ -19,6 +19,7 @@
     
     <resources>
       <code path="index.ts" order="1"/>
+      <css path="css/xyflow.css" order="1" />
       <!-- English -->
       <resx path="strings/HierarchyPCFControl.1033.resx" version="1.0.0" />
     </resources>

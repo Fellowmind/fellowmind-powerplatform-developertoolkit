@@ -251,15 +251,17 @@ fmfi.JsComponents.FormLocker = fmfi.JsComponents.FormLocker || function () {
                     onChangeField = settings.lookupFieldToParentTable;
                 }
 
-                JsLib.UI.Listeners.Field.RegisterOnChangeEvent(onChangeField, function () {
-                    if (JsLib.UI.Form.IsDirty()) {
-                        JsLib.Record.Save(undefined, function () {
+                if (executionContext.getEventArgs().getDataLoadState() === 1) {
+                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(onChangeField, function () {
+                        if (JsLib.UI.Form.IsDirty()) {
+                            JsLib.Record.Save(undefined, function () {
+                                JsLib.UI.Form.GetCurrentForm().navigate();
+                            }, function () { });
+                        } else {
                             JsLib.UI.Form.GetCurrentForm().navigate();
-                        }, function () { });
-                    } else {
-                        JsLib.UI.Form.GetCurrentForm().navigate();
-                    }
-                });
+                        }
+                    });
+                }
 
                 LockForm(settings).catch((error) => {
                     fmfi.JsComponents.Helpers.Common.ShowError(error, component.name, component.JSONModel);
@@ -461,9 +463,12 @@ fmfi.JsComponents.FormSwitch = fmfi.JsComponents.FormSwitch || function () {
                 }
                 let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
                 ValidateSettingsBasedOnFieldValue(settings, component);
-                JsLib.UI.Listeners.Field.RegisterOnChangeEvent(settings.sourceField, function () {
-                    SwitchFormBasedOnFieldValue(settings);
-                });
+
+                if (executionContext.getEventArgs().getDataLoadState() === 1) {
+                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(settings.sourceField, function () {
+                        SwitchFormBasedOnFieldValue(settings);
+                    });
+                }
 
                 await SwitchFormBasedOnFieldValue(settings);
             }
@@ -600,10 +605,11 @@ fmfi.JsComponents.BPFSwitch = fmfi.JsComponents.BPFSwitch || function () {
                 }
                 let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
                 ValidateSettings(settings);
-                JsLib.UI.Listeners.Field.RegisterOnChangeEvent(settings.sourceField, function () {
-                    SwitchBPFBasedOnFieldValue(settings);
-                });
-
+                if (executionContext.getEventArgs().getDataLoadState() === 1) {
+                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(settings.sourceField, function () {
+                        SwitchBPFBasedOnFieldValue(settings);
+                    });
+                }
                 await SwitchBPFBasedOnFieldValue(settings);
             }
         }
@@ -719,12 +725,13 @@ fmfi.JsComponents.CopyFieldValue = fmfi.JsComponents.CopyFieldValue || function 
 
                 settings.forEach(function (attribute) {
                     ValidateSettings(attribute);
-                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.sourceField, function () {
-                        CopyFieldValue(attribute).catch((error) => {
-                            fmfi.JsComponents.Helpers.Common.ShowError(error, component.name, component.JSONModel);
+                    if (executionContext.getEventArgs().getDataLoadState() === 1) {
+                        JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.sourceField, function () {
+                            CopyFieldValue(attribute).catch((error) => {
+                                fmfi.JsComponents.Helpers.Common.ShowError(error, component.name, component.JSONModel);
+                            });
                         });
-                    });
-
+                    }
                     if (JsLib.UI.Form.GetType() === JsLib.Enums.FormType.CREATE) {
                         CopyFieldValue(attribute).catch((error) => {
                             fmfi.JsComponents.Helpers.Common.ShowError(error, component.name, component.JSONModel);
@@ -868,9 +875,11 @@ fmfi.JsComponents.FormTabAndSectionVisibility = fmfi.JsComponents.FormTabAndSect
 
                 settings.forEach(function (attribute) {
                     ValidateSetting(attribute);
-                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.sourceField, function () {
-                        ShowTabsAndSections(attribute);
-                    });
+                    if (executionContext.getEventArgs().getDataLoadState() === 1) {
+                        JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.sourceField, function () {
+                            ShowTabsAndSections(attribute);
+                        });
+                    }
                     ShowTabsAndSections(attribute);
                 });
             }
@@ -1078,9 +1087,11 @@ fmfi.JsComponents.FieldHelpers = fmfi.JsComponents.FieldHelpers || function () {
 
                 settings.forEach(function (attribute) {
                     ValidateSetting(attribute);
-                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute, function () {
-                        AutoSaveOnChange(attribute);
-                    });
+                    if (executionContext.getEventArgs().getDataLoadState() === 1) {
+                        JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute, function () {
+                            AutoSaveOnChange(attribute);
+                        });
+                    }
                 });
             }
         },
@@ -1139,9 +1150,11 @@ fmfi.JsComponents.FieldHelpers = fmfi.JsComponents.FieldHelpers || function () {
                 settings.forEach(function (setting) {
                     ValidateSetting(setting);
                     if (!JsLib.Helper.IsNullOrUndefined(setting.sourceField)) {
-                        JsLib.UI.Listeners.Field.RegisterOnChangeEvent(setting.sourceField, function () {
-                            LockFields(setting);
-                        });
+                        if (executionContext.getEventArgs().getDataLoadState() === 1) {
+                            JsLib.UI.Listeners.Field.RegisterOnChangeEvent(setting.sourceField, function () {
+                                LockFields(setting);
+                            });
+                        }
                     }
                     LockFields(setting);
                 });
@@ -1201,7 +1214,7 @@ fmfi.JsComponents.FieldHelpers = fmfi.JsComponents.FieldHelpers || function () {
 
                 settings.forEach(function (setting) {
                     ValidateSetting(setting);
-                    if (!JsLib.Helper.IsNullOrUndefined(setting.sourceField)) {
+                    if (!JsLib.Helper.IsNullOrUndefined(setting.sourceField) && executionContext.getEventArgs().getDataLoadState() === 1) {
                         JsLib.UI.Listeners.Field.RegisterOnChangeEvent(setting.sourceField, function () {
                             HideOrUnhideFields(setting);
                         });
@@ -1264,7 +1277,7 @@ fmfi.JsComponents.FieldHelpers = fmfi.JsComponents.FieldHelpers || function () {
 
                 settings.forEach(function (setting) {
                     ValidateSetting(setting);
-                    if (!JsLib.Helper.IsNullOrUndefined(setting.sourceField)) {
+                    if (!JsLib.Helper.IsNullOrUndefined(setting.sourceField) && executionContext.getEventArgs().getDataLoadState() === 1) {
                         JsLib.UI.Listeners.Field.RegisterOnChangeEvent(setting.sourceField, function () {
                             SetFieldsRequired(setting);
                         });
@@ -1329,9 +1342,11 @@ fmfi.JsComponents.FieldHelpers = fmfi.JsComponents.FieldHelpers || function () {
 
                 settings.forEach(function (attribute) {
                     ValidateSetting(attribute);
-                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.targetField, function () {
-                        OpenCustomPageOnChange(attribute);
-                    });
+                    if (executionContext.getEventArgs().getDataLoadState() === 1) {
+                        JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.targetField, function () {
+                            OpenCustomPageOnChange(attribute);
+                        });
+                    }
                 });
             }
         },
@@ -1521,9 +1536,11 @@ fmfi.JsComponents.ChoiceManipulator = fmfi.JsComponents.ChoiceManipulator || fun
                 let settings = fmfi.JsComponents.Helpers.Common.ParseSettings(settingsJSON, component.JSONModel);
                 settings.forEach(function (attribute) {
                     ValidateSettingShowChoiceValuesBasedOnFieldValue(attribute, component);
-                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.sourceField, function () {
-                        ShowChoiceValuesBasedOnFieldValue(attribute, true);
-                    });
+                    if (executionContext.getEventArgs().getDataLoadState() === 1) {
+                        JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.sourceField, function () {
+                            ShowChoiceValuesBasedOnFieldValue(attribute, true);
+                        });
+                    }
                     ShowChoiceValuesBasedOnFieldValue(attribute, false);
                 });
             }
@@ -1734,30 +1751,32 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
 
                 settings.forEach(function (attribute) {
                     ValidateSetting(attribute);
-                    JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.targetField, function () {
-                        JsLib.UI.Field.SetSubmitMode(attribute.targetField, JsLib.Enums.Field_SubmitModes.ALWAYS);
-                        JsLib.Record.Save(undefined, function () {
-                            JsLib.UI.Field.SetSubmitMode(attribute.targetField, JsLib.Enums.Field_SubmitModes.DIRTY);
-                            if (attribute.askConfirmation) {
-                                JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationHeader"),
-                                    JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
-                                    JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, function (result) {
-                                        if (!result.confirmed) return;
-                                        try {
-                                            RunFlowAndWaitAnswer(attribute);
-                                        } catch (error) {
-                                            ProcessErrorResponse(error);
-                                        }
-                                    });
-                            } else {
-                                try {
-                                    RunFlowAndWaitAnswer(attribute);
-                                } catch (error) {
-                                    ProcessErrorResponse(error);
+                    if (executionContext.getEventArgs().getDataLoadState() === 1) {
+                        JsLib.UI.Listeners.Field.RegisterOnChangeEvent(attribute.targetField, function () {
+                            JsLib.UI.Field.SetSubmitMode(attribute.targetField, JsLib.Enums.Field_SubmitModes.ALWAYS);
+                            JsLib.Record.Save(undefined, function () {
+                                JsLib.UI.Field.SetSubmitMode(attribute.targetField, JsLib.Enums.Field_SubmitModes.DIRTY);
+                                if (attribute.askConfirmation) {
+                                    JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationHeader"),
+                                        JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
+                                        JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, function (result) {
+                                            if (!result.confirmed) return;
+                                            try {
+                                                RunFlowAndWaitAnswer(attribute);
+                                            } catch (error) {
+                                                ProcessErrorResponse(error);
+                                            }
+                                        });
+                                } else {
+                                    try {
+                                        RunFlowAndWaitAnswer(attribute);
+                                    } catch (error) {
+                                        ProcessErrorResponse(error);
+                                    }
                                 }
-                            }
-                        }, function () { });
-                    });
+                            }, function () { });
+                        });
+                    }
                 });
             }
         },

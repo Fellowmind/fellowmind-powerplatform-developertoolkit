@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="Fellowmind" constructor="ModernFormButton" version="1.0.0"
+           display-name-key="FM Modern Button"
+           description-key="A styled action button for model-driven forms. Writes an event name to a bound field on click so OnChange business rules can trigger flows, navigation, or custom logic."
+           control-type="standard">
+
+    <external-service-usage enabled="false" />
+
+    <!-- ═══ Content ═══════════════════════════════════════════════════════ -->
+    <property name="label"
+              display-name-key="label"
+              description-key="Text displayed on the button face. Defaults to Button when left blank."
+              of-type="SingleLine.Text" usage="input" required="false" />
+
+    <property name="icon"
+              display-name-key="icon"
+              description-key="Icon displayed alongside the label. Select None to show no icon. When Icon Position is set to IconOnly the label is hidden and only the icon is rendered."
+              of-type="Enum" usage="input" required="false">
+      <value name="None"     display-name-key="None">None</value>
+      <value name="Add"      display-name-key="Add">Add</value>
+      <value name="Arrow"    display-name-key="Arrow">Arrow</value>
+      <value name="Calendar" display-name-key="Calendar">Calendar</value>
+      <value name="Check"    display-name-key="Check">Check</value>
+      <value name="Close"    display-name-key="Close">Close</value>
+      <value name="Copy"     display-name-key="Copy">Copy</value>
+      <value name="Delete"   display-name-key="Delete">Delete</value>
+      <value name="Download" display-name-key="Download">Download</value>
+      <value name="Edit"     display-name-key="Edit">Edit</value>
+      <value name="Info"     display-name-key="Info">Info</value>
+      <value name="Link"     display-name-key="Link">Link</value>
+      <value name="Mail"     display-name-key="Mail">Mail</value>
+      <value name="Open"     display-name-key="Open">Open</value>
+      <value name="Person"   display-name-key="Person">Person</value>
+      <value name="Phone"    display-name-key="Phone">Phone</value>
+      <value name="Play"     display-name-key="Play">Play</value>
+      <value name="Refresh"  display-name-key="Refresh">Refresh</value>
+      <value name="Save"     display-name-key="Save">Save</value>
+      <value name="Search"   display-name-key="Search">Search</value>
+      <value name="Send"     display-name-key="Send">Send</value>
+      <value name="Settings" display-name-key="Settings">Settings</value>
+      <value name="Star"     display-name-key="Star">Star</value>
+      <value name="Upload"   display-name-key="Upload">Upload</value>
+      <value name="Warning"  display-name-key="Warning">Warning</value>
+    </property>
+
+    <property name="tooltipText"
+              display-name-key="tooltipText"
+              description-key="Text shown when the user hovers over the button. Also used as the accessible aria-label. Leave blank to fall back to the label."
+              of-type="SingleLine.Text" usage="input" required="false" />
+
+    <!-- ═══ Appearance ════════════════════════════════════════════════════ -->
+    <property name="buttonStyle"
+              display-name-key="buttonStyle"
+              description-key="Visual style variant. Primary = brand blue. Secondary = neutral grey. Danger = red. Success = green. Ghost = transparent with blue text."
+              of-type="Enum" usage="input" required="false">
+      <value name="Primary"   display-name-key="Primary">Primary</value>
+      <value name="Secondary" display-name-key="Secondary">Secondary</value>
+      <value name="Danger"    display-name-key="Danger">Danger</value>
+      <value name="Success"   display-name-key="Success">Success</value>
+      <value name="Ghost"     display-name-key="Ghost">Ghost</value>
+    </property>
+
+    <property name="size"
+              display-name-key="size"
+              description-key="Button size. Small = compact toolbars. Medium = default form buttons. Large = prominent calls-to-action. XLarge = hero or landing-page buttons."
+              of-type="Enum" usage="input" required="false">
+      <value name="Small"  display-name-key="Small">Small</value>
+      <value name="Medium" display-name-key="Medium">Medium</value>
+      <value name="Large"  display-name-key="Large">Large</value>
+      <value name="XLarge" display-name-key="XLarge">XLarge</value>
+    </property>
+
+    <property name="iconPosition"
+              display-name-key="iconPosition"
+              description-key="Where the icon appears relative to the label. Left = before label. Right = after label. Top = above label. IconOnly = hides the label."
+              of-type="Enum" usage="input" required="false">
+      <value name="Left"     display-name-key="Left">Left</value>
+      <value name="Right"    display-name-key="Right">Right</value>
+      <value name="Top"      display-name-key="Top">Top</value>
+      <value name="IconOnly" display-name-key="IconOnly">IconOnly</value>
+    </property>
+
+    <property name="borderRadius"
+              display-name-key="borderRadius"
+              description-key="Corner rounding in pixels (0-50). 0 = sharp corners. 4 = default subtle rounding. 50 = fully pill-shaped."
+              of-type="Whole.None" usage="input" required="false" />
+
+    <property name="backgroundColor"
+              display-name-key="backgroundColor"
+              description-key="Custom background colour as a hex value (e.g. #8764B8). Overrides the Button Style colour."
+              of-type="SingleLine.Text" usage="input" required="false" />
+
+    <property name="textColor"
+              display-name-key="textColor"
+              description-key="Custom label and icon colour as a hex value (e.g. #ffffff). Overrides the Button Style text colour."
+              of-type="SingleLine.Text" usage="input" required="false" />
+
+    <!-- ═══ Behaviour ═════════════════════════════════════════════════════ -->
+    <property name="isDisabled"
+              display-name-key="isDisabled"
+              description-key="When set to Yes the button is rendered as non-interactive. Use this to conditionally lock the button from a business rule or Power Fx expression."
+              of-type="TwoOptions" usage="input" required="false" default-value="false" />
+
+    <property name="confirmationRequired"
+              display-name-key="confirmationRequired"
+              description-key="When set to Yes a confirmation popover appears above the button before the click event fires. Use this for destructive or irreversible actions."
+              of-type="TwoOptions" usage="input" required="false" />
+
+    <property name="confirmationMessage"
+              display-name-key="confirmationMessage"
+              description-key="Message shown inside the confirmation popover. Defaults to Are you sure you want to proceed? when left blank."
+              of-type="SingleLine.Text" usage="input" required="false" />
+
+    <property name="confirmationYesText"
+              display-name-key="confirmationYesText"
+              description-key="Label for the confirm button in the confirmation popover. Defaults to Yes when left blank."
+              of-type="SingleLine.Text" usage="input" required="false" />
+
+    <property name="confirmationNoText"
+              display-name-key="confirmationNoText"
+              description-key="Label for the cancel button in the confirmation popover. Defaults to No when left blank."
+              of-type="SingleLine.Text" usage="input" required="false" />
+
+    <property name="eventName"
+              display-name-key="eventName"
+              description-key="The string written to the bound field when the button is clicked. Use a unique value per button on the form (e.g. createOpportunity, sendEmail)."
+              of-type="SingleLine.Text" usage="input" required="false" />
+
+    <!-- ═══ Output (bound to a text field — OnChange fires on click) ══════ -->
+    <property name="buttonClicked"
+              display-name-key="buttonClicked"
+              description-key="Bind this property to a Single line of text column. The value is set to Event Name on click and reset to blank after 600 ms. Wire your action logic to the column OnChange event."
+              of-type="SingleLine.Text" usage="bound" required="true" />
+
+    <resources>
+      <code path="index.ts" order="1" />
+    </resources>
+  </control>
+</manifest>

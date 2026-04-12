@@ -17,7 +17,6 @@ const RatingComponent = (props: IInputComponentProps) => {
 
     useEffect(() => {
         if (value !== ratingvalue) {
-            console.log("useEffect props.rating changed : " + ratingvalue);
             setValue(ratingvalue);
         }
     }, [ratingvalue]); //Props are changed
@@ -34,8 +33,7 @@ const RatingComponent = (props: IInputComponentProps) => {
     const handleRatingChange = (event: React.FormEvent<HTMLElement | HTMLTextAreaElement>, newValue?: number | undefined) => {
         if (newValue === undefined) return;
         setValue(newValue);
-        onValueChange(Number(newValue))
-        console.log("Rating changed: " + newValue);
+        onValueChange(Number(newValue));
 
     }
 

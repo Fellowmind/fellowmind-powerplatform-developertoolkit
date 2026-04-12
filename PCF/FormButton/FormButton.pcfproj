@@ -11,6 +11,7 @@
     <Name>FormButton</Name>
     <ProjectGuid>5b59e32f-45b4-4972-be65-ea47bb7da2e5</ProjectGuid>
     <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
+    <PcfBuildMode>production</PcfBuildMode>
   </PropertyGroup>
 
   <PropertyGroup>

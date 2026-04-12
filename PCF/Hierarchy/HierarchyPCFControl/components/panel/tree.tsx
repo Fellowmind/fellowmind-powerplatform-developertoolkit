@@ -24,7 +24,6 @@ const NodeTree = memo(({ isCollapsed }: IProps) => {
       parentId: string | null = null,
       includeCollapsed: boolean = false
     ): INavLink[] => {
-      console.log("includeCollapsed: ", includeCollapsed);
       let filteredNodes = nodes
         ? nodes.filter((node) => {
             return (

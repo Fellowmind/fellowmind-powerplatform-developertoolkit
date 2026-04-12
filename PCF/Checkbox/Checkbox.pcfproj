@@ -11,6 +11,7 @@
     <Name>Checkbox</Name>
     <ProjectGuid>aa777874-a840-46a7-aad0-57c3b3381b7b</ProjectGuid>
     <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
+    <PcfBuildMode>production</PcfBuildMode>
   </PropertyGroup>
 
   <PropertyGroup>

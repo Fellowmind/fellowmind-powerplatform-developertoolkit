@@ -1,0 +1,221 @@
+PCF Component Spec: FM Enhanced TextField
+Overview
+A bound field component for Single Line and Multiple Line text fields in Model-Driven Apps (Dynamics 365 / Dataverse). Shows a live character counter (used / max) and adds contextual icons and actions based on field type (Phone, Email, URL).
+Namespace: Fellowmind
+Component Name: FM Enhanced TextField
+Framework: React (TSX) + Fluent UI v9 (@fluentui/react-components)
+
+Why
+Fields like invoice line descriptions often have a max length enforced by Dataverse. Users only discover the limit when they hit a validation error. This component shows remaining space in real time, preventing errors and improving the filling experience.
+
+Bound Properties
+PropertyTypeUsageOf-typeRequiredvalueSingleLine.TextThe bound field value. Also supports SingleLine.Phone, SingleLine.Email, SingleLine.URL, MultipleMultiple of-type-groupsYes
+Of-Type-Group Definition
+In ControlManifest.Input.xml, define a type-group to support all target field types:
+xml<type-group name="TextFieldTypes">
+  <type>SingleLine.Text</type>
+  <type>SingleLine.TextArea</type>
+  <type>SingleLine.Phone</type>
+  <type>SingleLine.Email</type>
+  <type>SingleLine.URL</type>
+  <type>Multiple</type>
+</type-group>
+Input Properties (non-bound)
+PropertyTypeDefaultDescriptionMaxLengthOverrideWhole.None-1Optional override for max length. If -1, use metadata. Useful if metadata is unavailable or you want a custom limit.ShowCounterTwoOptionstrueShow/hide the character counterShowIconTwoOptionstrueShow/hide the field-type icon (phone/email/url)WarningThresholdPercentWhole.None80Percentage at which counter turns warning color (orange)ErrorThresholdPercentWhole.None95Percentage at which counter turns error color (red)
+
+Metadata Access
+Get max length from field metadata in updateView:
+typescript// Model-Driven App: metadata is available
+const attributes = context.parameters.value.attributes;
+const maxLength = attributes?.MaxLength ?? this.maxLengthOverride ?? 100;
+const fieldType = attributes?.Type ?? "SingleLine.Text";
+Key attributes available from context.parameters.value.attributes:
+
+MaxLength (number) — the Dataverse column max length
+Type (string) — the field type, e.g. "SingleLine.Phone"
+LogicalName (string)
+DisplayName (string)
+
+
+Field Type Behaviors
+Default (SingleLine.Text, SingleLine.TextArea, Multiple)
+
+Standard text input or textarea
+Character counter only
+Multiple → render as <textarea> with auto-resize
+
+Phone (SingleLine.Phone)
+
+Show phone icon (Fluent Call icon) on the right side of the input
+Icon is a clickable button → triggers tel: link (window.open("tel:" + value))
+Only show clickable icon when value is non-empty
+Style: icon matches Dynamics 365 native phone field appearance
+
+Email (SingleLine.Email)
+
+Show email icon (Fluent Mail icon) on the right side
+Icon is clickable → triggers mailto: link
+Add real-time email validation (regex + visual indicator)
+Validation regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+Show validation state: neutral → valid (green check) / invalid (red warning) as user types
+Only validate when field is not empty
+
+URL (SingleLine.URL)
+
+Show link icon (Fluent Open icon) on the right side
+Icon is clickable → opens URL in new tab (window.open(value, "_blank"))
+Auto-detect and show clickable link behavior when value starts with http:// or https://
+If value doesn't start with protocol, prepend https:// when opening
+
+
+Character Counter UI
+Layout
+┌─────────────────────────────────────────────┐
+│ [text input field content]          [icon]  │
+└─────────────────────────────────────────────┘
+  42 / 200                                      ← counter below field, right-aligned or left-aligned
+For Multiple / textarea:
+┌─────────────────────────────────────────────┐
+│ [textarea content]                          │
+│                                             │
+│                                             │
+└─────────────────────────────────────────────┘
+                                    42 / 2000   ← counter below, right-aligned
+Counter States
+StateConditionColorFontNormalused < warningThresholdNeutral/gray (colorNeutralForeground3)RegularWarningused >= warningThreshold && used < errorThresholdOrange (colorPaletteMarigoldForeground1)Semi-boldErrorused >= errorThresholdRed (colorPaletteRedForeground1)Semi-boldOver limitused > maxRed + background highlightBold
+Counter text format: {used} / {max} — e.g. "142 / 200"
+When over limit, also show: {over} characters over limit in red below the counter.
+
+Styling Requirements
+
+Match Dynamics 365 native field styling — the input should look like it belongs in a model-driven form
+Use Fluent UI v9 <Input>, <Textarea>, <Button>, <Tooltip> components
+Use Fluent UI v9 design tokens for all colors (no hardcoded colors)
+Icon buttons should use appearance="subtle" and match the native Dynamics icon style
+The component must respect the form's read-only and disabled states:
+
+Read-only: show value as text (no input), counter hidden, icon still clickable
+Disabled: grayed out input, no interaction
+
+
+Respect context.mode.isControlDisabled and context.mode.isVisible
+
+
+Component Architecture
+index.ts                 — PCF lifecycle (init, updateView, destroy)
+EnhancedTextField.tsx    — Main React component
+EnhancedText.tsx     — Counter sub-component
+FieldIcon.tsx            — Icon button sub-component (phone/email/url)
+types.ts                 — Interfaces and types
+utils.ts                 — Validation helpers, field type detection
+Data Flow
+index.ts
+  ├── reads metadata (MaxLength, Type) from context.parameters.value.attributes
+  ├── reads current value from context.parameters.value.raw
+  ├── passes props to EnhancedTextField.tsx
+  └── calls context.parameters.value.raw = newValue (via notifyOutputChanged)
+
+EnhancedTextField.tsx
+  ├── manages local input state
+  ├── renders input/textarea based on field type
+  ├── renders EnhancedText with current/max
+  ├── renders FieldIcon based on field type
+  └── calls onChange callback → index.ts → notifyOutputChanged
+Key Implementation Notes
+
+getOutputs() must return the value:
+
+typescriptpublic getOutputs(): IOutputs {
+  return { value: this.currentValue };
+}
+
+Respect PCF lifecycle — don't call notifyOutputChanged() during updateView(). Only call it from user-initiated events (onChange).
+Use context.parameters.value.raw (not .formatted) to get/set the actual value.
+Auto-resize textarea for Multiple fields — calculate height based on content using a hidden measurement element or scrollHeight.
+Focus/blur handling — match Dynamics behavior where the field shows the full edit UI on focus, and a compact display on blur.
+
+
+ControlManifest.Input.xml
+xml<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <control namespace="Fellowmind" constructor="EnhancedTextField" version="1.0.0"
+           display-name-key="EnhancedTextField" description-key="Enhanced text field with character counter and field-type actions"
+           control-type="standard"
+           api-version="1.3.4">
+
+    <type-group name="TextFieldTypes">
+      <type>SingleLine.Text</type>
+      <type>SingleLine.TextArea</type>
+      <type>SingleLine.Phone</type>
+      <type>SingleLine.Email</type>
+      <type>SingleLine.URL</type>
+      <type>Multiple</type>
+    </type-group>
+
+    <property name="value" display-name-key="Value" description-key="The bound text field"
+              of-type-group="TextFieldTypes" usage="bound" required="true" />
+
+    <property name="MaxLengthOverride" display-name-key="Max Length Override"
+              description-key="Override max length (-1 = use metadata)"
+              of-type="Whole.None" usage="input" required="false" default-value="-1" />
+
+    <property name="ShowCounter" display-name-key="Show Counter"
+              description-key="Show the character counter"
+              of-type="TwoOptions" usage="input" required="false" default-value="true" />
+
+    <property name="ShowIcon" display-name-key="Show Icon"
+              description-key="Show field type action icon"
+              of-type="TwoOptions" usage="input" required="false" default-value="true" />
+
+    <property name="WarningThresholdPercent" display-name-key="Warning Threshold %"
+              description-key="Percentage at which counter shows warning"
+              of-type="Whole.None" usage="input" required="false" default-value="80" />
+
+    <property name="ErrorThresholdPercent" display-name-key="Error Threshold %"
+              description-key="Percentage at which counter shows error"
+              of-type="Whole.None" usage="input" required="false" default-value="95" />
+
+    <resources>
+      <code path="index.ts" order="1" />
+      <platform-library name="React" version="18.3.1" />
+      <platform-library name="Fluent" version="9.46.2" />
+    </resources>
+
+  </control>
+</manifest>
+
+Edge Cases to Handle
+
+MaxLength = 0 or undefined — treat as unlimited, hide counter
+Null value — treat as empty string, counter shows 0 / max
+Paste event — if pasted text exceeds max, do NOT truncate automatically (let Dataverse handle validation), but show clear over-limit warning
+IME input (CJK characters) — use onCompositionStart / onCompositionEnd to avoid updating during IME composition
+Field security — if field is secured and user has no read access, value.raw may be null and value.security will indicate this. Show appropriate masked UI.
+RTL support — counter and icon placement should respect context.userSettings.isRTL
+
+
+Testing Checklist
+
+ SingleLine.Text — counter displays correctly, respects metadata MaxLength
+ Multiple — textarea renders, auto-resizes, counter works
+ SingleLine.Phone — phone icon shows, tel: link works
+ SingleLine.Email — email icon shows, validation works, mailto: link works
+ SingleLine.URL — link icon shows, opens in new tab, handles missing protocol
+ Read-only mode — value displayed as text, icons still clickable
+ Disabled mode — all interaction disabled
+ Counter color transitions at warning/error thresholds
+ Over-limit warning message appears
+ Empty field — counter shows 0 / max, icons hidden/disabled
+ MaxLengthOverride property overrides metadata
+ ShowCounter=false hides counter
+ ShowIcon=false hides icon
+ Long text — no layout breaking
+ Copy/paste of large text
+ Field security — masked field handled
+
+
+Reference
+
+PCF Gallery: Character Counter — inspiration
+Fluent UI v9: @fluentui/react-components
+Fluent icons: @fluentui/react-icons (Call24Regular, Mail24Regular, Open24Regular, CheckmarkCircle16Filled, Warning16Filled)

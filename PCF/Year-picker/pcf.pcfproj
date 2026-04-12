@@ -6,6 +6,7 @@
     <Name>pcf</Name>
     <ProjectGuid>c17ed672-bd50-4c44-a876-287023fabdc3</ProjectGuid>
     <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
+    <PcfBuildMode>production</PcfBuildMode>
   </PropertyGroup>
 
   <PropertyGroup>

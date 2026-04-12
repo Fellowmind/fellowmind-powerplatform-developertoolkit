@@ -11,6 +11,7 @@
     <Name>CustomLabel</Name>
     <ProjectGuid>604b8fed-14cd-4f56-8c27-cb054ab76cf1</ProjectGuid>
     <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
+    <PcfBuildMode>production</PcfBuildMode>
   </PropertyGroup>
 
   <PropertyGroup>

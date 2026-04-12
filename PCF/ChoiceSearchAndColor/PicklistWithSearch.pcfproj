@@ -11,6 +11,7 @@
     <Name>ChoiceSearchAndColor</Name>
     <ProjectGuid>ef042e32-335c-464a-9ffe-73fa89a8f345</ProjectGuid>
     <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
+    <PcfBuildMode>production</PcfBuildMode>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -8,6 +8,7 @@ export class YearPicker implements ComponentFramework.StandardControl<IInputs, I
 	// eslint-disable-next-line no-undef
 	private _refreshData: EventListenerOrEventListenerObject;
 	private _updateValue: () => void;
+	private _context: ComponentFramework.Context<IInputs>;
 
 	constructor() {
 		var head = document.head;
@@ -31,6 +32,7 @@ export class YearPicker implements ComponentFramework.StandardControl<IInputs, I
 		notifyOutputChanged: () => void,
 		state: ComponentFramework.Dictionary,
 		container: HTMLDivElement) {
+		this._context = context;
 		this._value = context.parameters.value.raw || undefined;
 
 		this._notifyOutputChanged = notifyOutputChanged;
@@ -49,6 +51,7 @@ export class YearPicker implements ComponentFramework.StandardControl<IInputs, I
 	 * @param context The entire property bag available to control via Context Object; It contains values as set up by the customizer mapped to names defined in the manifest, as well as utility functions
 	 */
 	public updateView(context: ComponentFramework.Context<IInputs>): void {
+		this._context = context;
 		if (context.mode.isControlDisabled) {
 			this._input.setAttribute("disabled", "");
 		} else {
@@ -83,8 +86,9 @@ export class YearPicker implements ComponentFramework.StandardControl<IInputs, I
 
 		let newValue = new Date(rawNumber, 0);
 		if (newValue < new Date(1753, 0)) {
-			alert("Minimum year in CDS is 1753");
-			this._updateValue();
+			this._context.navigation.openAlertDialog({ text: "Minimum year in CDS is 1753" }).then(() => {
+				this._updateValue();
+			});
 			return;
 		}
 

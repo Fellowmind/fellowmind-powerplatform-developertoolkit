@@ -76,7 +76,7 @@ export class CustomDatePicker implements ComponentFramework.StandardControl<IInp
 		Object.keys(this.monthSelectValues).forEach(function (el) {
 			context.firstSelectElement.add(new Option(el));
 		});
-		let monthName = Object.keys(this.monthSelectValues).find(el => this.monthSelectValues[el] == this.firstValue) as string;
+		let monthName = Object.keys(this.monthSelectValues).find(el => this.monthSelectValues[el] === this.firstValue) as string;
 		this.firstSelectElement.selectedIndex = this.firstValue ? Object.keys(this.monthSelectValues).indexOf(monthName) : 0;
 
 		this.firstSelectElement.addEventListener("change", this.firstChange.bind(this));
@@ -98,7 +98,7 @@ export class CustomDatePicker implements ComponentFramework.StandardControl<IInp
 				break;
 			}
 			case "1": {//MM-dd
-				let currentMonth = this.firstValue && this.firstValue[0] == "0" && this.firstValue.length > 1 ? this.firstValue.substring(1) : this.firstValue == "---" || !this.firstValue ? "1" : this.firstValue;
+				let currentMonth = this.firstValue && this.firstValue[0] === "0" && this.firstValue.length > 1 ? this.firstValue.substring(1) : this.firstValue === "---" || !this.firstValue ? "1" : this.firstValue;
 				let currentYear = new Date().getFullYear();
 				let daysInMonth = this.getDaysInMonth(parseInt(currentMonth, 10), currentYear);
 
@@ -121,7 +121,7 @@ export class CustomDatePicker implements ComponentFramework.StandardControl<IInp
 
 		switch (this.dateFormat) {
 			case "1": {//MM-dd
-				let currentMonth = this.firstValue && this.firstValue[0] == "0" && this.firstValue.length > 1 ? this.firstValue.substring(1) : this.firstValue == "---" || !this.firstValue ? "1" : this.firstValue;
+				let currentMonth = this.firstValue && this.firstValue[0] === "0" && this.firstValue.length > 1 ? this.firstValue.substring(1) : this.firstValue === "---" || !this.firstValue ? "1" : this.firstValue;
 				let currentYear = new Date().getFullYear();
 				let daysInMonth = this.getDaysInMonth(parseInt(currentMonth, 10), currentYear);
 				let daysArray = this.daySelectValues.filter(el => { return el !== "---" && parseInt(el, 10) <= daysInMonth });
