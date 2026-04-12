@@ -18,7 +18,7 @@
     "@dagrejs/dagre": "github:dagrejs/dagre",
     "@fluentui/react": "8.121.0",
     "@xyflow/react": "^12.4.2",
-    "axios": "^1.8.4",
+    "axios": "^1.14.1",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
