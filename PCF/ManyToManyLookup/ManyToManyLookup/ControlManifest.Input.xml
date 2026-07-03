@@ -3,6 +3,7 @@
   <control namespace="Fellowmind" constructor="ManyToManyLookup" version="0.0.1" display-name-key="FM ManyToMany Lookup" description-key="Tag picker for N:N relationships on a subgrid." control-type="virtual">
     <external-service-usage enabled="false" />
     <property name="addMoreText" display-name-key="Add More Text" description-key="Text displayed next to the search icon button. Defaults to Add more if left empty." of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="nameField" display-name-key="Name Field" description-key="Optional related table column logical name used as the visible tag label. Defaults to the related table primary name column." of-type="SingleLine.Text" usage="input" required="false" />
     <data-set name="records" display-name-key="Associated Records" />
     <resources>
       <code path="index.ts" order="1"/>

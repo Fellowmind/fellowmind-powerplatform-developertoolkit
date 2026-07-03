@@ -47,6 +47,7 @@
     <Content Include="source\scriptTemplate.js"/>
     <Content Include="components\strings\fmfi.JsComponents.1033.resx"/>
     <Content Include="components\strings\fmfi.JsComponents.1035.resx"/>
+    <Content Include="components\strings\fmfi.JsComponents.1053.resx"/>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="components\"/>

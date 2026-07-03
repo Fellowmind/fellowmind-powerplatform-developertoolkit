@@ -2,18 +2,11 @@
 using Microsoft.Xrm.Sdk.Workflow;
 using System;
 using System.Activities;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Text.Json;
-using ExecuteHttpTrigger.Models;
 using System.Net.Http;
-using System.Net;
 using Microsoft.Xrm.Sdk.Query;
-using System.Net.Http.Headers;
-using System.Web.UI.WebControls;
-using System.Text.Json.Serialization;
+
 
 namespace ExecuteHttpTrigger
 {
@@ -50,7 +43,7 @@ namespace ExecuteHttpTrigger
 
             tracingService.Trace($"usesConfigurationEntity {usesConfigurationEntity}");
 
-            if(string.IsNullOrEmpty(configurationRowName))
+            if (string.IsNullOrEmpty(configurationRowName))
             {
                 throw new InvalidPluginExecutionException("ConfigurationRowName is empty.");
             }
@@ -62,7 +55,7 @@ namespace ExecuteHttpTrigger
                 query.Criteria.AddCondition("fmfi_name", ConditionOperator.Equal, configurationRowName);
                 var queryResult = service.RetrieveMultiple(query);
                 var configurationEntity = queryResult.Entities.FirstOrDefault();
-                if(configurationEntity != null)
+                if (configurationEntity != null)
                     configurationEntity.TryGetAttributeValue<string>("fmfi_textvalue", out paUrl);
             }
             else
@@ -112,66 +105,8 @@ namespace ExecuteHttpTrigger
                 throw new Exception($"Power automate flow did not run successfully: {response.StatusCode} {resJson}");
             }
 
-            var options = new JsonSerializerOptions
-            {
-                Converters = { new BoolConverter() },
-            };
-            var message = JsonSerializer.Deserialize<MessageObject>(resJson, options);
-
-            if (!message.success)
-            {
-                throw new Exception($"Power automate flow did not run successfully: {message.message}");
-            }
-
-            string messageJson = JsonSerializer.Serialize(message);
-
-            tracingService.Trace($"messageJson: {messageJson}");
-
-            Message.Set(context, messageJson);
+            Message.Set(context, resJson);
         }
     }
 
-
-    public class BoolConverter : JsonConverter<bool>
-    {
-        public override bool Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            switch (reader.TokenType)
-            {
-                case JsonTokenType.True:
-                    return true;
-                case JsonTokenType.False:
-                    return false;
-                case JsonTokenType.String:
-                    if (bool.TryParse(reader.GetString(), out var b))
-                    {
-                        return b;
-                    }
-                    else
-                    {
-                        throw new JsonException();
-                    }
-                case JsonTokenType.Number:
-                    if (reader.TryGetInt64(out long l))
-                    {
-                        return Convert.ToBoolean(l);
-                    }
-                    else if (reader.TryGetDouble(out double d))
-                    {
-                        return Convert.ToBoolean(d);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                default:
-                    throw new JsonException();
-            }
-        }
-
-        public override void Write(Utf8JsonWriter writer, bool value, JsonSerializerOptions options)
-        {
-            writer.WriteBooleanValue(value);
-        }
-    }
 }

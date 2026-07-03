@@ -16,11 +16,18 @@ interface TagItem {
 
 export const TagPickerContainer = ({ context, relationshipName, targetEntityType }: TagPickerContainerProps): React.ReactElement => {
     const [isUpdating, setIsUpdating] = React.useState(false);
+    const [primaryNameAttribute, setPrimaryNameAttribute] = React.useState<string>("");
     const entitySetNamesRef = React.useRef<{ parent: string; related: string } | null>(null);
+    const configuredNameField = (
+        (context as ComponentFramework.Context<IInputs>).parameters as ComponentFramework.Context<IInputs>["parameters"] & {
+            nameField?: ComponentFramework.PropertyTypes.StringProperty;
+        }
+    ).nameField?.raw?.trim() ?? "";
 
     React.useEffect(() => {
         if (!targetEntityType || !context.page.entityTypeName) return;
         entitySetNamesRef.current = null;
+        setPrimaryNameAttribute("");
         const load = async (): Promise<void> => {
             try {
                 const [parentMeta, relatedMeta] = await Promise.all([
@@ -31,6 +38,7 @@ export const TagPickerContainer = ({ context, relationshipName, targetEntityType
                     parent: parentMeta.EntitySetName,
                     related: relatedMeta.EntitySetName,
                 };
+                setPrimaryNameAttribute(relatedMeta.PrimaryNameAttribute ?? "");
             } catch (e) {
                 console.error("Failed to load entity set names:", e);
             }
@@ -40,11 +48,16 @@ export const TagPickerContainer = ({ context, relationshipName, targetEntityType
 
     const selectedTags = React.useMemo<TagItem[]>(() => {
         const { sortedRecordIds, records } = (context as ComponentFramework.Context<IInputs>).parameters.records;
+        const nameField = configuredNameField || primaryNameAttribute;
         return sortedRecordIds.map((id) => ({
             id,
-            name: records[id].getValue("name") as string ?? records[id].getValue("fullname") as string ?? id,
+            name:
+                (nameField ? records[id].getValue(nameField) as string : undefined) ??
+                records[id].getValue("name") as string ??
+                records[id].getValue("fullname") as string ??
+                id,
         }));
-    }, [context.parameters.records.sortedRecordIds]);
+    }, [context.parameters.records.sortedRecordIds, configuredNameField, primaryNameAttribute]);
 
     const getSetNames = async (): Promise<{ parent: string; related: string }> => {
         if (entitySetNamesRef.current) return entitySetNamesRef.current;

@@ -15,16 +15,22 @@ const MockTagView = TagView as jest.MockedFunction<typeof TagView>;
 const mockFetch = jest.fn();
 (global as any).fetch = mockFetch;
 
-function makeRecord(name: string) {
-    return { getValue: (field: string) => (field === 'name' ? name : null) };
+function makeRecord(values: Record<string, string> | string) {
+    const recordValues = typeof values === 'string' ? { name: values } : values;
+    return { getValue: (field: string) => recordValues[field] ?? null };
 }
 
 function makeContext(
     recordIds: string[] = [],
     recordMap: Record<string, any> = {},
+    primaryNameAttribute = 'name',
+    nameField: string | null = null,
 ): IContextExtended {
     return {
         parameters: {
+            nameField: {
+                raw: nameField,
+            },
             records: {
                 sortedRecordIds: recordIds,
                 records: recordMap,
@@ -34,7 +40,7 @@ function makeContext(
         },
         utils: {
             getEntityMetadata: jest.fn().mockImplementation((entityName: string) =>
-                Promise.resolve({ EntitySetName: `${entityName}s`, PrimaryNameAttribute: 'name' })
+                Promise.resolve({ EntitySetName: `${entityName}s`, PrimaryNameAttribute: primaryNameAttribute })
             ),
             lookupObjects: jest.fn().mockResolvedValue([]),
         } as any,
@@ -75,6 +81,37 @@ describe('TagPickerContainer', () => {
                 { id: 'id-1', name: 'Alice' },
                 { id: 'id-2', name: 'Bob' },
             ]);
+        });
+
+        it('uses the related table primary name attribute for tag labels', async () => {
+            const context = makeContext(
+                ['id-1', 'id-2'],
+                {
+                    'id-1': makeRecord({ fm_displayname: 'Primary Alice', name: 'Fallback Alice' }),
+                    'id-2': makeRecord({ fm_displayname: 'Primary Bob', name: 'Fallback Bob' }),
+                },
+                'fm_displayname'
+            );
+            await act(async () => {
+                render(<TagPickerContainer context={context} relationshipName="account_contacts" targetEntityType="contact" />);
+            });
+            expect(capturedProps.tags).toEqual([
+                { id: 'id-1', name: 'Primary Alice' },
+                { id: 'id-2', name: 'Primary Bob' },
+            ]);
+        });
+
+        it('uses configured nameField before the related table primary name attribute', async () => {
+            const context = makeContext(
+                ['id-1'],
+                { 'id-1': makeRecord({ fm_customlabel: 'Configured Label', fm_displayname: 'Primary Label' }) },
+                'fm_displayname',
+                'fm_customlabel'
+            );
+            await act(async () => {
+                render(<TagPickerContainer context={context} relationshipName="account_contacts" targetEntityType="contact" />);
+            });
+            expect(capturedProps.tags).toEqual([{ id: 'id-1', name: 'Configured Label' }]);
         });
 
         it('passes empty tags when no records exist', async () => {

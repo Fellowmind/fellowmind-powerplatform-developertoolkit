@@ -2133,13 +2133,13 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                     }
                 });
             },
-            OpenFromGridRibbon: function (entityReferences, customPageLogicalName, customPageType, widthInPercents, heightInPercents, dialogTitle, successCallBack, errorCallBack) {
+            OpenFromGridRibbon: function (entityReferences, customPageLogicalName, customPageType, widthInPercents, heightInPercents, dialogTitle, successCallBack, errorCallBack, allowMultiSelect) {
                 /// <summary>
                 /// Navigates to custom page from a subgrid ribbon button.
                 /// </summary>
                 /// <param name="entityReferences" type="array of entityreferences" required="true" >
-                ///  Selected record from the subgrid of the entity in which context the Custom Page will be opened. Eventhoug this is an array, only the first element will be used.
-                ///  If multiple records has been selected, an error is thrown.
+                ///  Selected record(s) from the subgrid of the entity in which context the Custom Page will be opened.
+                ///  If allowMultiSelect is false or not given, only the first element will be used and selecting multiple records shows a warning.
                 /// </param>
                 /// <param name="customPageLogicalName" type="string" required="true" >
                 ///  Logical name of the Custom Page that should be opened.
@@ -2162,6 +2162,9 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                 /// <param name="errorCallBack" type="function" required="false" >
                 ///  Custom errorcallback function that should be executed after the custom page is not closed successfully. Required if successCallBack has been defined.
                 /// </param>
+                /// <param name="allowMultiSelect" type="boolean" required="false" >
+                ///  If true, allows multiple records to be selected from the subgrid. All selected record IDs will be passed as a semicolon-separated string to the recordId parameter. Defaults to false.
+                /// </param>
 
                 if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(entityReferences))
                     return;
@@ -2172,16 +2175,20 @@ fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI = fmfi.PowerPlatform.DeveloperToolk
                 if (fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.IsNullOrUndefined(customPageType))
                     throw "UI.CustomPage.OpenFromGridRibbon: parameter 'customPageType' must be defined!";   
 
-                if (entityReferences.length > 1) {
+                if (!allowMultiSelect && entityReferences.length > 1) {
                     var message = "Please select only one record to proceed.";
                     fmfi.PowerPlatform.DeveloperToolkit.JsLib.UI.Notification.ShowFormNotification(message, fmfi.PowerPlatform.DeveloperToolkit.JsLib.Enums.FormNotification_Type.WARNING, 10);
                     return;
                 }                
 
+                var recordId = allowMultiSelect
+                    ? entityReferences.map(function (ref) { return fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.RemoveParenthesisFromGUID(ref.Id); }).join(";")
+                    : fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.RemoveParenthesisFromGUID(entityReferences[0].Id);
+
                 var pageInput = {
                     pageType: "custom",
                     name: customPageLogicalName,                    
-                    recordId: fmfi.PowerPlatform.DeveloperToolkit.JsLib.Helper.RemoveParenthesisFromGUID(entityReferences[0].Id),
+                    recordId: recordId,
                 };
 
                 navigationOptions = { target: 1 };

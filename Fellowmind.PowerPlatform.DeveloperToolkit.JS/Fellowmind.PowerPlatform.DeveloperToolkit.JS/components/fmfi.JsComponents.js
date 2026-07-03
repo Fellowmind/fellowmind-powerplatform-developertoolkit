@@ -141,6 +141,11 @@ fmfi.JsComponents.Helpers = fmfi.JsComponents.Helpers || function () {
                 }
                 Xrm.Navigation.openErrorDialog({ message: message, details: detailsHeader + errorDetail });
             },
+            /**
+             * Calculates dimensons for the pop-up dialog based on text length
+             * @param {String} text text to show on the dialog
+             * @returns {Object} dimensions object
+             */
             CalculateDialogDimension(text) {
                 let dimensions = { height: null, width: null };
                 if (!JsLib.Helper.IsNullOrUndefined(text) && (text.length > 100 || text.split("\n").length >= 3)) {
@@ -148,6 +153,19 @@ fmfi.JsComponents.Helpers = fmfi.JsComponents.Helpers || function () {
                     dimensions = { height: alertHeight, width: 450 };
                 }
                 return dimensions;
+            },
+            /**
+             * Gets message text based on user language if multilanguage json provided
+             * @param {*} messageTextOrObject 
+             * @returns message on user language
+             */
+            MultiLanguageMessage(messageTextOrObject) {
+                if (typeof messageTextOrObject !== 'object' || Array.isArray(messageTextOrObject) || JsLib.Helper.IsNullOrUndefined(messageTextOrObject)) {
+                    return messageTextOrObject ?? "";
+                }
+                const languageCode = JsLib.CurrentUser.GetUserSettings()?.languageId ?? JsLib.Context.GetGlobalContext()?.organizationSettings?.languageId;
+                return messageTextOrObject[languageCode] ?? Object.values(messageTextOrObject)[0] ?? "";
+
             }
         }
     };
@@ -1645,8 +1663,8 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
         let table = response.tablename ?? response.tableName ?? response.table ?? response.Table ?? response.Entity ?? response.entity;
         let rowId = response.recordid ?? response.RowGuid ?? response.Rowguid ?? response.rowGuid ?? response.rowguid ?? response.recordId ?? response.recordID;
 
-        if (success === "False" || success === "false" || success === false) {
-            let errorResponse = { message: message ?? JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.DefaultError") };
+        if (success === "False" || success === "false" || success === false || success === 0 || success === "0") {
+            let errorResponse = { message: !JsLib.Helper.IsNullOrUndefined(message) ? message : JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.DefaultError") };
             ProcessErrorResponse(errorResponse);
             return;
         }
@@ -1714,7 +1732,7 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
             OnLoad: async function (initExecutionContext, settingsJSON) {
                 const component = {
                     name: "RunFlow.FormOnFieldValueChange",
-                    JSONModel: '[{"targetField":"FIELD_SCHEMA_NAME", "configurationTable": "CONFIGURATION_TABLE_NAME", "configurationRowName": "CONFIGURATION_ROW_NAME", "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "extra": "EXTRA"}]'
+                    JSONModel: '[{"targetField":"FIELD_SCHEMA_NAME", "configurationTable": "CONFIGURATION_TABLE_NAME", "configurationRowName": "CONFIGURATION_ROW_NAME", "askConfirmation": true , "confirmationText": {"1033": "CONFIRMATION_TEXT_EN", "1035": "VAHVISTUS_VIESTI_FI", "1053": "BEKRÄFTELSEMEDDELANDE_SV"}, "extra": "EXTRA"}]'
                 };
 
                 /**
@@ -1759,7 +1777,7 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
                                 if (attribute.askConfirmation) {
                                     JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationHeader"),
                                         JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
-                                        JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, function (result) {
+                                        JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), fmfi.JsComponents.Helpers.Common.MultiLanguageMessage(attribute.confirmationText), function (result) {
                                             if (!result.confirmed) return;
                                             try {
                                                 RunFlowAndWaitAnswer(attribute);
@@ -1794,7 +1812,7 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
             FormRunFlow: async function (initFormContext, settingsJSON) {
                 const component = {
                     name: "RunFlow.FormRunFlow",
-                    JSONModel: '{"configurationTable": "CONFIGURATION_TABLE_NAME", "configurationRowName": "CONFIGURATION_ROW_NAME", "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "extra": "EXTRA"}'
+                    JSONModel: '{"configurationTable": "CONFIGURATION_TABLE_NAME", "configurationRowName": "CONFIGURATION_ROW_NAME", "askConfirmation": true , "confirmationText": {"1033": "CONFIRMATION_TEXT_EN", "1035": "VAHVISTUS_VIESTI_FI", "1053": "BEKRÄFTELSEMEDDELANDE_SV"}, "extra": "EXTRA"}'
                 };
 
                 /**
@@ -1834,7 +1852,7 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
                     if (attribute.askConfirmation) {
                         JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationHeader"),
                             JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
-                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, function (result) {
+                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), fmfi.JsComponents.Helpers.Common.MultiLanguageMessage(attribute.confirmationText), function (result) {
                                 if (!result.confirmed) return;
                                 try {
                                     RunFlowAndWaitAnswer(attribute);
@@ -1865,7 +1883,7 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
             SubGridRunFlow: async function (initFormContext, selectedRecordRefs, settingsJSON) {
                 const component = {
                     name: "RunFlow.FormRunFlow",
-                    JSONModel: '{"configurationTable": "CONFIGURATION_TABLE_NAME", "configurationRowName": "CONFIGURATION_ROW_NAME", "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "extra": "EXTRA"}'
+                    JSONModel: '{"configurationTable": "CONFIGURATION_TABLE_NAME", "configurationRowName": "CONFIGURATION_ROW_NAME", "askConfirmation": true , "confirmationText": {"1033": "CONFIRMATION_TEXT_EN", "1035": "VAHVISTUS_VIESTI_FI", "1053": "BEKRÄFTELSEMEDDELANDE_SV"}, "extra": "EXTRA"}'
                 };
 
                 /**
@@ -1908,7 +1926,7 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
                     if (attribute.askConfirmation) {
                         JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationHeader"),
                             JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
-                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, function (result) {
+                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), fmfi.JsComponents.Helpers.Common.MultiLanguageMessage(attribute.confirmationText), function (result) {
                                 if (!result.confirmed) return;
                                 try {
                                     RunFlowAndWaitAnswer(attribute, selectedRecordRefs);
@@ -1940,7 +1958,7 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
             GridRunFlow: async function (initGridControl, selectedRecordRefs, settingsJSON) {
                 const component = {
                     name: "RunFlow.FormRunFlow",
-                    JSONModel: '{"configurationTable": "CONFIGURATION_TABLE_NAME", "configurationRowName": "CONFIGURATION_ROW_NAME", "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "extra": "EXTRA"}'
+                    JSONModel: '{"configurationTable": "CONFIGURATION_TABLE_NAME", "configurationRowName": "CONFIGURATION_ROW_NAME", "askConfirmation": true , "confirmationText": {"1033": "CONFIRMATION_TEXT_EN", "1035": "VAHVISTUS_VIESTI_FI", "1053": "BEKRÄFTELSEMEDDELANDE_SV"}, "extra": "EXTRA"}'
                 };
 
                 /**
@@ -1983,7 +2001,7 @@ fmfi.JsComponents.RunFlow = fmfi.JsComponents.RunFlow || function () {
                 if (attribute.askConfirmation) {
                     JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "RunFlow.ConfirmationHeader"),
                         JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
-                        JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, function (result) {
+                        JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), fmfi.JsComponents.Helpers.Common.MultiLanguageMessage(attribute.confirmationText), function (result) {
                             if (!result.confirmed) return;
                             try {
                                 RunFlowAndWaitAnswer(attribute, selectedRecordRefs);
@@ -2068,7 +2086,7 @@ fmfi.JsComponents.CreateCopyOfTheRow = fmfi.JsComponents.CreateCopyOfTheRow || f
             FormCreateDraftCopy: async function (initFormContext, settingsJSON) {
                 const component = {
                     name: "CreateCopyOfTheRow.FormCreateDraftCopy",
-                    JSONModel: '{"ignoreFields": ["FIELDSCHEMANAME"], "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "formId": "FORMGUID", "useQuickCreateForm": false }'
+                    JSONModel: '{"ignoreFields": ["FIELDSCHEMANAME"], "askConfirmation": true , "confirmationText": {"1033": "CONFIRMATION_TEXT_EN", "1035": "VAHVISTUS_VIESTI_FI", "1053": "BEKRÄFTELSEMEDDELANDE_SV"}, "formId": "FORMGUID", "useQuickCreateForm": false }'
                 };
 
                 /**
@@ -2110,7 +2128,7 @@ fmfi.JsComponents.CreateCopyOfTheRow = fmfi.JsComponents.CreateCopyOfTheRow || f
                     if (attribute.askConfirmation) {
                         JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "CreateCopyOfTheRow.ConfirmationHeader"),
                             JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
-                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, async function (result) {
+                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), fmfi.JsComponents.Helpers.Common.MultiLanguageMessage(attribute.confirmationText), async function (result) {
                                 if (!result.confirmed) return;
                                 JsLib.UI.Form.OpenFormNewRecord(JsLib.Record.GetEntityName(), attribute.useQuickCreateForm, false, await populateEntityFormParameters(JsLib.Record.GetEntityName(), JsLib.Record.GetId(true), attribute), attribute.formId);
                             });
@@ -2133,7 +2151,7 @@ fmfi.JsComponents.CreateCopyOfTheRow = fmfi.JsComponents.CreateCopyOfTheRow || f
             SubGridCreateDraftCopy: async function (initFormContext, selectedRecordRefs, settingsJSON) {
                 const component = {
                     name: "CreateCopyOfTheRow.SubGridCreateDraftCopy",
-                    JSONModel: '{"ignoreFields": ["FIELDSCHEMANAME"], "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "formId": "FORMGUID", "useQuickCreateForm": false }'
+                    JSONModel: '{"ignoreFields": ["FIELDSCHEMANAME"], "askConfirmation": true , "confirmationText": {"1033": "CONFIRMATION_TEXT_EN", "1035": "VAHVISTUS_VIESTI_FI", "1053": "BEKRÄFTELSEMEDDELANDE_SV"}, "formId": "FORMGUID", "useQuickCreateForm": false }'
                 };
 
                 /**
@@ -2179,7 +2197,7 @@ fmfi.JsComponents.CreateCopyOfTheRow = fmfi.JsComponents.CreateCopyOfTheRow || f
                     if (attribute.askConfirmation) {
                         JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "CreateCopyOfTheRow.ConfirmationHeader"),
                             JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
-                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, async function (result) {
+                            JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), fmfi.JsComponents.Helpers.Common.MultiLanguageMessage(attribute.confirmationText), async function (result) {
                                 if (!result.confirmed) return;
                                 JsLib.UI.Form.OpenFormNewRecord(selectedRecordRefs[0].TypeName, attribute.useQuickCreateForm, false, await populateEntityFormParameters(selectedRecordRefs[0].TypeName, selectedRecordRefs[0].Id, attribute), attribute.formId);
 
@@ -2204,7 +2222,7 @@ fmfi.JsComponents.CreateCopyOfTheRow = fmfi.JsComponents.CreateCopyOfTheRow || f
             GridCreateDraftCopy: async function (initGridControl, selectedRecordRefs, settingsJSON) {
                 const component = {
                     name: "CreateCopyOfTheRow.GridCreateDraftCopy",
-                    JSONModel: '{"ignoreFields": ["FIELDSCHEMANAME"], "askConfirmation": true , "confirmationText": "CONFIRMATION_TEXT", "formId": "FORMGUID", "useQuickCreateForm": false }'
+                    JSONModel: '{"ignoreFields": ["FIELDSCHEMANAME"], "askConfirmation": true , "confirmationText": {"1033": "CONFIRMATION_TEXT_EN", "1035": "VAHVISTUS_VIESTI_FI", "1053": "BEKRÄFTELSEMEDDELANDE_SV"}, "formId": "FORMGUID", "useQuickCreateForm": false }'
                 };
 
                 /**
@@ -2248,7 +2266,7 @@ fmfi.JsComponents.CreateCopyOfTheRow = fmfi.JsComponents.CreateCopyOfTheRow || f
                 if (attribute.askConfirmation) {
                     JsLib.UI.Dialogue.ShowConfirmation(JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "CreateCopyOfTheRow.ConfirmationHeader"),
                         JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "Yes"),
-                        JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), attribute.confirmationText, async function (result) {
+                        JsLib.Helper.GetWebresourceLocalizedString(fmfi.JsComponents._LocalizationFileName, "No"), fmfi.JsComponents.Helpers.Common.MultiLanguageMessage(attribute.confirmationText), async function (result) {
                             if (!result.confirmed) return;
                             JsLib.UI.Form.OpenFormNewRecord(selectedRecordRefs[0].TypeName, attribute.useQuickCreateForm, false, await populateEntityFormParameters(selectedRecordRefs[0].TypeName, selectedRecordRefs[0].Id, attribute), attribute.formId);
                         });
