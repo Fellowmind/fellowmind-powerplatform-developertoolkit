@@ -2,6 +2,12 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { IInputs, IOutputs } from "./generated/ManifestTypes";
 import App from "./app";
+import {
+  isLocalDevHost,
+  sanitizeConfigName,
+  sanitizeGuid,
+  sanitizeLogicalName,
+} from "./utils/sanitize";
 
 export class HierarchyPCFControl
   implements ComponentFramework.StandardControl<IInputs, IOutputs>
@@ -25,14 +31,17 @@ export class HierarchyPCFControl
 
     const props = {
       context,
-      entityName: contextInfo?.entityTypeName ?? params?.etn,
-      entityId: contextInfo?.entityId ?? params?.id,
-      scriptValue: params?.scriptValue || "account_contact_hierarchy",
+      entityName: sanitizeLogicalName(
+        contextInfo?.entityTypeName ?? params?.etn
+      ),
+      entityId: sanitizeGuid(contextInfo?.entityId ?? params?.id),
+      scriptValue:
+        sanitizeConfigName(params?.scriptValue) ?? "account_contact_hierarchy",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       appId: (context as any).page.appId,
     } as any;
 
-    if (window.location.href.includes("localhost")) {
+    if (isLocalDevHost()) {
       props.entityName = "account";
       props.entityId = "3c1773f2-30e5-ee11-904d-000d3a43f82f";
       // props.entityId = "e53ca800-8171-e911-a81d-000d3a3a6ca3";

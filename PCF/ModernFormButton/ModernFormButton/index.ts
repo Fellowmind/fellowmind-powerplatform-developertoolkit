@@ -53,9 +53,10 @@ export class ModernFormButton implements ComponentFramework.StandardControl<IInp
     private _render(): void {
         this._root.render(
             React.createElement(ModernFormButtonComponent, {
-                params:    this._context.parameters,
-                isLoading: this._isLoading,
-                onFire:    this._handleFire,
+                params:            this._context.parameters,
+                isControlDisabled: this._context.mode.isControlDisabled,
+                isLoading:         this._isLoading,
+                onFire:            this._handleFire,
             })
         );
     }
@@ -70,6 +71,10 @@ export class ModernFormButton implements ComponentFramework.StandardControl<IInp
      * produces a value change and fires OnChange again.
      */
     private readonly _handleFire = (): void => {
+        if (this._context.mode.isControlDisabled || this._context.parameters.isDisabled?.raw === true) {
+            return;
+        }
+
         const eventName = this._context.parameters.eventName?.raw || "buttonClicked";
         this._lastClickedEvent = eventName;
         this._isLoading        = true;

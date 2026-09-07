@@ -70,7 +70,9 @@ The `Actions` folder contains reusable server-side Dataverse functionality.
 | `ExecuteHttpTrigger` | Custom workflow activity | Reads a Power Automate HTTP trigger URL from configuration or environment variables, posts a JSON body to it, and returns the response. |
 | `FetchXMLHelperAPI` | Plugin/custom API helper | Executes FetchXML and returns the result as JSON. |
 | `GenerateReferenceNumber` | Custom workflow activity | Generates Finnish reference numbers, with optional check digit and international RF format support. |
+| `CanonicalPhoneNumberAPI` | Custom API | Canonicalizes phone numbers for a target country through the unbound `fmfi_CanonicalPhoneNumber` API. See `Actions\CanonicalPhoneNumberAPI\README.md`. |
 | `MergeFiles` | Plugin/custom API helper | Merges Base64 encoded PDF files and returns the merged PDF as Base64. See `Actions\MergeFiles\README.md`. |
+| `ReCalculateRollupField` | Custom API | Immediately recalculates a rollup column for a Dataverse record through the unbound `fmfi_ReCalculateRollupField` API. See `Actions\ReCalculateRollupField\README.md`. |
 
 The actions/plugins are classic .NET Framework projects and are included in `Actions\fellowmind.developertoolkit.plugins.sln`.
 

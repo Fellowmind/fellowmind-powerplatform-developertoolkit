@@ -10,6 +10,9 @@ export interface EnhancedTextFieldProps {
     showIcon: boolean;
     warningThresholdPercent: number;
     errorThresholdPercent: number;
+    enableRegexValidation: boolean;
+    regexPattern: string;
+    regexValidationErrorText: string;
     onChange: (newValue: string) => void;
 }
 
@@ -28,3 +31,8 @@ export interface FieldIconProps {
 }
 
 export type CounterState = "normal" | "warning" | "error" | "over";
+
+export type RegexValidationConfiguration =
+    | { status: "disabled" }
+    | { status: "invalid"; errorMessage: string }
+    | { status: "ready"; regex: RegExp };

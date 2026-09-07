@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="Fellowmind" constructor="EnhancedTextField" version="1.0.0"
+  <control namespace="Fellowmind" constructor="EnhancedTextField" version="1.1.0"
            display-name-key="FM Enhanced Text Field" description-key="Enhanced text field with character counter and field-type actions"
            control-type="virtual"
            api-version="1.3.4">
@@ -38,6 +38,18 @@
     <property name="ErrorThresholdPercent" display-name-key="Error Threshold %"
               description-key="Percentage at which counter shows error"
               of-type="Whole.None" usage="input" required="false" default-value="95" />
+
+    <property name="EnableRegexValidation" display-name-key="Enable Regex Validation"
+              description-key="Validate non-empty values against a regular expression"
+              of-type="TwoOptions" usage="input" required="false" default-value="false" />
+
+    <property name="RegexPattern" display-name-key="Regex Pattern"
+              description-key="JavaScript-compatible regular expression pattern; use ^ and $ for full-value matching"
+              of-type="SingleLine.Text" usage="input" required="false" />
+
+    <property name="RegexValidationErrorText" display-name-key="Regex Validation Error Text"
+              description-key="Custom error text shown when the value does not match the regular expression"
+              of-type="SingleLine.Text" usage="input" required="false" />
 
     <resources>
       <code path="index.ts" order="1" />

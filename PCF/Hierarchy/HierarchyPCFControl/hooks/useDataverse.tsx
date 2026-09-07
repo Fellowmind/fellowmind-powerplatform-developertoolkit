@@ -19,6 +19,13 @@ import {
   fetchConfig,
 } from "../api";
 import { extractParentEntityField } from "../utils/extractParentEntityField";
+import {
+  escapeODataString,
+  escapeXmlAttribute,
+  isValidConfigName,
+  isValidGuid,
+  isValidLogicalName,
+} from "../utils/sanitize";
 // import { configArr } from "../configurationExample";
 
 export const useDataverse = (
@@ -40,6 +47,12 @@ export const useDataverse = (
 
   useEffect(() => {
     if (!entityName || !id) return;
+
+    if (!isValidLogicalName(entityName) || !isValidGuid(id)) {
+      setError({ message: `Invalid entity name or record id parameter.` });
+      setIsLoading(false);
+      return;
+    }
 
     (async () => {
       const config = await fetchConfig(scriptValueParam as string);
@@ -106,7 +119,9 @@ export const useDataverse = (
 
   const fetchAttributes = async (): Promise<EntityDefinition[]> => {
     console.log("fetchAttributes");
-    const query = `api/data/v9.1/EntityDefinitions(LogicalName='${entityName}')/Attributes?$select=LogicalName,AttributeType,DisplayName&$filter=AttributeOf eq null&$orderby=DisplayName asc`;
+    const query = `api/data/v9.1/EntityDefinitions(LogicalName='${escapeODataString(
+      entityName as string
+    )}')/Attributes?$select=LogicalName,AttributeType,DisplayName&$filter=AttributeOf eq null&$orderby=DisplayName asc`;
     const result = (await xrmService.fetch(query)) as EntityDefinition[];
     return result;
   };
@@ -118,7 +133,9 @@ export const useDataverse = (
   ): Promise<Form[]> => {
     const result = await context.webAPI.retrieveMultipleRecords(
       "systemform",
-      `?$filter=objecttypecode eq '${entityName}' and type eq 6`
+      `?$filter=objecttypecode eq '${escapeODataString(
+        entityName as string
+      )}' and type eq 6`
     );
 
     if (!result.entities || result.entities.length <= 0)
@@ -179,7 +196,9 @@ export const useDataverse = (
 
         // Is the first one in the hierarchy
         if (isSelfReferential && !entityMap[item.entityType]) {
-          const fetchSelfCondition = `<filter><condition operator="eq" attribute="${item.idField}" value="${id}"/></filter>`;
+          const fetchSelfCondition = `<filter><condition operator="eq" attribute="${escapeXmlAttribute(
+            item.idField
+          )}" value="${escapeXmlAttribute(id)}"/></filter>`;
           const selfQuery = item.entityQuery.replace(
             "[FILTER]",
             fetchSelfCondition
@@ -217,7 +236,9 @@ export const useDataverse = (
               entityMap[item.entityType + currentIndex].forEach((pId) => {
                 parentEntitiesCondition =
                   parentEntitiesCondition +
-                  `<condition attribute="${parentEntityQueryField}" operator="eq" value="${pId}" />`;
+                  `<condition attribute="${escapeXmlAttribute(
+                    parentEntityQueryField
+                  )}" operator="eq" value="${escapeXmlAttribute(pId)}" />`;
               });
 
               // const fetchSelfCondition = `<filter><condition operator="eq" attribute="${parentEntityQueryField}" value="${
@@ -269,7 +290,9 @@ export const useDataverse = (
             (c: any) => c.parentEntity === null
           );
 
-          const parentCondition = `<filter type="and"><condition  operator="eq" attribute="${parent.idField}" value="${id}"/></filter>`;
+          const parentCondition = `<filter type="and"><condition  operator="eq" attribute="${escapeXmlAttribute(
+            parent.idField
+          )}" value="${escapeXmlAttribute(id)}"/></filter>`;
           const parentQuery = parent.entityQuery.replace(
             "[FILTER]",
             parentCondition
@@ -322,7 +345,9 @@ export const useDataverse = (
             entityMap[item.parentEntity].forEach((paId: any) => {
               parentEntitiesCondition =
                 parentEntitiesCondition +
-                `<condition attribute="${parentEntityQueryField}" operator="eq" value="${paId}" />`;
+                `<condition attribute="${escapeXmlAttribute(
+                  parentEntityQueryField
+                )}" operator="eq" value="${escapeXmlAttribute(paId)}" />`;
             });
 
             const childQuery = item?.entityQuery.replace(
@@ -379,9 +404,14 @@ export const useDataverse = (
 
   const fetchConfigurationEntity = async () => {
     console.log("fetchConfigurationEntity");
+
+    if (!isValidConfigName(scriptValueParam)) {
+      throw new Error(`Invalid configuration name: ${scriptValueParam}`);
+    }
+
     const configurationEntity = await context.webAPI.retrieveMultipleRecords(
       "fmfi_developerkitconfiguration",
-      `?$filter=fmfi_name eq '${scriptValueParam}'`
+      `?$filter=fmfi_name eq '${escapeODataString(scriptValueParam as string)}'`
     );
     console.log("configurationEntity: ", configurationEntity);
 
