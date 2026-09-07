@@ -1,9 +1,14 @@
 /* eslint-disable no-irregular-whitespace */
 import axios from "axios";
+import {
+  escapeODataString,
+  isLocalDevHost,
+  isValidConfigName,
+} from "../utils/sanitize";
 
 axios.defaults.baseURL = `${window.origin}/api/data/v9.2`;
 
-if (window.location.href.includes("localhost")) {
+if (isLocalDevHost()) {
   axios.defaults.headers.common["Authorization"] = "";
   axios.defaults.baseURL =
     "https://ENVIRONMENTNAME.crm4.dynamics.com/api/data/v9.2";
@@ -87,8 +92,14 @@ export const fetchEntities2 = async () => {
 };
 
 export const fetchConfig = async (name: string) => {
+  if (!isValidConfigName(name)) {
+    throw new Error(`Invalid configuration name: ${name}`);
+  }
+
+  const filter = encodeURIComponent(`fmfi_name eq '${escapeODataString(name)}'`);
+
   const resp = await axios.get(
-    `/fmfi_developerkitconfigurations?$filter=fmfi_name eq '${name}'&$select=fmfi_name,fmfi_scriptvalue`
+    `/fmfi_developerkitconfigurations?$filter=${filter}&$select=fmfi_name,fmfi_scriptvalue`
   );
   return resp;
 };

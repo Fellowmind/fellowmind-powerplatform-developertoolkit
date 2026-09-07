@@ -53,6 +53,9 @@ export class EnhancedTextField implements ComponentFramework.ReactControl<IInput
             showIcon: context.parameters.ShowIcon.raw ?? true,
             warningThresholdPercent: context.parameters.WarningThresholdPercent.raw ?? 80,
             errorThresholdPercent: context.parameters.ErrorThresholdPercent.raw ?? 95,
+            enableRegexValidation: context.parameters.EnableRegexValidation.raw ?? false,
+            regexPattern: context.parameters.RegexPattern.raw ?? "",
+            regexValidationErrorText: context.parameters.RegexValidationErrorText.raw ?? "",
             onChange: (newValue: string) => {
                 this.currentValue = newValue;
                 this.notifyOutputChanged();

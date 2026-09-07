@@ -11,6 +11,7 @@ const SPINNER_KEYFRAMES_ID = "mfb-keyframes";
 
 export interface ButtonComponentProps {
     params: IInputs;
+    isControlDisabled: boolean;
     isLoading: boolean;
     onFire: () => void;
 }
@@ -19,6 +20,7 @@ export interface ButtonComponentProps {
 
 export const ModernFormButtonComponent: React.FC<ButtonComponentProps> = ({
     params,
+    isControlDisabled,
     isLoading,
     onFire,
 }) => {
@@ -31,7 +33,7 @@ export const ModernFormButtonComponent: React.FC<ButtonComponentProps> = ({
     const borderRadius    = params.borderRadius?.raw       ?? null;
     const customBg        = params.backgroundColor?.raw    || null;
     const customColor     = params.textColor?.raw          || null;
-    const isDisabled      = params.isDisabled?.raw         ?? false;
+    const isDisabled      = isControlDisabled || (params.isDisabled?.raw ?? false);
     const tooltip         = params.tooltipText?.raw        || "";
     const confirmRequired = params.confirmationRequired?.raw ?? false;
     const confirmMessage  = params.confirmationMessage?.raw  || "Are you sure you want to proceed?";
@@ -82,12 +84,16 @@ export const ModernFormButtonComponent: React.FC<ButtonComponentProps> = ({
     // ── Handlers ─────────────────────────────────────────────────────────────
     const handleClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
+        if (isDisabled) {
+            return;
+        }
+
         if (confirmRequired) {
             setDialogOpen(prev => !prev);
         } else {
             onFire();
         }
-    }, [confirmRequired, onFire]);
+    }, [confirmRequired, isDisabled, onFire]);
 
     const handleConfirm = useCallback(() => {
         setDialogOpen(false);

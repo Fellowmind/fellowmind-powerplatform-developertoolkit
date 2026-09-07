@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="Fellowmind" constructor="ModernFormButton" version="1.0.0"
+  <control namespace="Fellowmind" constructor="ModernFormButton" version="1.0.1"
            display-name-key="FM Modern Button"
            description-key="A styled action button for model-driven forms. Writes an event name to a bound field on click so OnChange business rules can trigger flows, navigation, or custom logic."
            control-type="standard">

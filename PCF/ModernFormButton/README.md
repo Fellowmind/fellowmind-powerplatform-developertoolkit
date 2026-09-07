@@ -46,7 +46,7 @@ Create a new `Single line of text` column on the table, e.g. `fm_buttonclicked`.
 | `borderRadius` | Number | Corner radius in px, 0–50. Defaults to `4`. |
 | `backgroundColor` | Text | Hex colour override, e.g. `#8764B8`. Overrides `buttonStyle` colour. |
 | `textColor` | Text | Hex colour override for label and icon, e.g. `#ffffff`. |
-| `isDisabled` | Yes/No | Set to `Yes` to render the button as non-interactive. |
+| `isDisabled` | Yes/No | Set to `Yes` to keep the button non-interactive regardless of the form control's runtime disabled state. |
 | `confirmationRequired` | Yes/No | Set to `Yes` to show a confirmation popover before firing. |
 | `confirmationMessage` | Text | Message shown inside the confirmation popover. Defaults to `"Are you sure you want to proceed?"`. |
 | `eventName` | Text | The string written to the bound field on click. Defaults to `"buttonClicked"`. Use a unique value per button on the form. |
@@ -145,5 +145,6 @@ Select `None` (or leave unset) to render the button without an icon.
 ## Notes
 
 - The bound field (`fm_buttonclicked`) should be a **Single line of text** column.
-- The control ignores `isControlDisabled` from the form context intentionally — it is always interactive. Use the `isDisabled` property to lock the button from configuration.
+- The button follows the form control's disabled state, so `formContext.getControl(...).setDisabled(true/false)` disables or enables it at runtime.
+- The `isDisabled` property is an additional configured lock. When it is `Yes`, `setDisabled(false)` does not enable the button; leave it as `No` when JavaScript must control the state.
 - The button resets the bound field to `""` 600 ms after firing so that repeated clicks always trigger OnChange, even when `eventName` has not changed.

@@ -3,6 +3,16 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import ChoiceSearchAndColorComponent, { IOptionSetOption } from "./ChoiceSearchAndColor";
 
+/**
+ * True only when the control is served from a local dev harness. Must never be a
+ * substring test against the full URL, since a crafted query string
+ * (?foo=localhost) would otherwise enable dev-only behaviour in production.
+ */
+const isLocalDevHost = (): boolean => {
+    const host = window.location.hostname.toLowerCase();
+    return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+};
+
 export class ChoiceSearchAndColor implements ComponentFramework.StandardControl<IInputs, IOutputs> {
     private container: HTMLDivElement;
     private context: ComponentFramework.Context<IInputs>;
@@ -45,7 +55,7 @@ export class ChoiceSearchAndColor implements ComponentFramework.StandardControl<
         const isDisabled = context.mode.isControlDisabled || !context.parameters.Picklist.security?.editable;
   
 
-        if(window.location.href.includes("localhost")) {
+        if(isLocalDevHost()) {
             options = [{ Label: "Option 1", Value: 1, Color: "#D841F8" }, { Label: "Option 2", Value: 2, Color: "#8BC7F0" }, { Label: "Option 3", Value: 3, Color: "#A9F251" }]
         }
 

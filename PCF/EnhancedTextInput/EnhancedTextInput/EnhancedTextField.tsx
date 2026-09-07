@@ -1,9 +1,14 @@
 import * as React from "react";
-import { FluentProvider, webLightTheme, Input, Textarea, tokens } from "@fluentui/react-components";
+import { FluentProvider, webLightTheme, Field, Input, Textarea, tokens } from "@fluentui/react-components";
 import { EnhancedText } from "./EnhancedText";
 import { FieldIcon } from "./FieldIcon";
 import { EnhancedTextFieldProps } from "./types";
-import { isMultilineField, hasSpecialIcon } from "./utils";
+import {
+    createRegexValidationConfiguration,
+    getRegexValidationError,
+    isMultilineField,
+    hasSpecialIcon,
+} from "./utils";
 
 // Match the Dynamics 365 / Power Apps colour palette so our inputs blend with
 // the surrounding form controls.  The page's own FluentProvider uses these
@@ -36,6 +41,9 @@ export const EnhancedTextField = (props: EnhancedTextFieldProps): React.ReactEle
         showIcon,
         warningThresholdPercent,
         errorThresholdPercent,
+        enableRegexValidation,
+        regexPattern,
+        regexValidationErrorText,
         onChange,
     } = props;
 
@@ -45,6 +53,31 @@ export const EnhancedTextField = (props: EnhancedTextFieldProps): React.ReactEle
     React.useEffect(() => {
         setLocalValue(value ?? "");
     }, [value]);
+
+    const regexValidationConfiguration = React.useMemo(
+        () => createRegexValidationConfiguration(enableRegexValidation, regexPattern),
+        [enableRegexValidation, regexPattern]
+    );
+
+    const regexValidationError = React.useMemo(() => {
+        if (isDisabled || isReadOnly || isMasked || isComposing) {
+            return undefined;
+        }
+
+        return getRegexValidationError(
+            regexValidationConfiguration,
+            localValue,
+            regexValidationErrorText
+        );
+    }, [
+        isDisabled,
+        isReadOnly,
+        isMasked,
+        isComposing,
+        regexValidationConfiguration,
+        localValue,
+        regexValidationErrorText,
+    ]);
 
     const handleChange = (newVal: string): void => {
         setLocalValue(newVal);
@@ -60,6 +93,7 @@ export const EnhancedTextField = (props: EnhancedTextFieldProps): React.ReactEle
     const handleCompositionEnd = (e: React.CompositionEvent<HTMLElement>): void => {
         setIsComposing(false);
         const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+        setLocalValue(target.value);
         onChange(target.value);
     };
 
@@ -127,23 +161,33 @@ export const EnhancedTextField = (props: EnhancedTextFieldProps): React.ReactEle
         />
     ) : undefined;
 
+    const hasRegexValidationError = regexValidationError !== undefined;
+    const validationFieldProps = {
+        validationMessage: regexValidationError,
+        validationState: hasRegexValidationError ? "error" as const : undefined,
+        style: { width: "100%" },
+    };
+
     return (
         <FluentProvider theme={dynamicsTheme} style={providerStyle}>
             <div style={containerStyle}>
                 {isMultiline ? (
                     <div style={{ position: "relative", width: "100%", boxSizing: "border-box" }}>
-                        <Textarea
-                            value={localValue}
-                            disabled={isDisabled}
-                            resize="vertical"
-                            root={{ style: { width: "100%", boxSizing: "border-box" } }}
-                            textarea={{
-                                style: { minHeight: "60px" },
-                                onCompositionStart: handleCompositionStart,
-                                onCompositionEnd: handleCompositionEnd as React.CompositionEventHandler<HTMLTextAreaElement>,
-                            }}
-                            onChange={(_, data) => handleChange(data.value)}
-                        />
+                        <Field {...validationFieldProps}>
+                            <Textarea
+                                value={localValue}
+                                disabled={isDisabled}
+                                aria-invalid={hasRegexValidationError}
+                                resize="vertical"
+                                root={{ style: { width: "100%", boxSizing: "border-box" } }}
+                                textarea={{
+                                    style: { minHeight: "60px" },
+                                    onCompositionStart: handleCompositionStart,
+                                    onCompositionEnd: handleCompositionEnd as React.CompositionEventHandler<HTMLTextAreaElement>,
+                                }}
+                                onChange={(_, data) => handleChange(data.value)}
+                            />
+                        </Field>
                         {showIconForType && (
                             <div style={{ position: "absolute", top: "4px", right: isRTL ? undefined : "4px", left: isRTL ? "4px" : undefined }}>
                                 {fieldIconElement}
@@ -152,15 +196,18 @@ export const EnhancedTextField = (props: EnhancedTextFieldProps): React.ReactEle
                     </div>
                 ) : (
                     <div style={{ width: "100%", boxSizing: "border-box" }}>
-                        <Input
-                            value={localValue}
-                            disabled={isDisabled}
-                            root={{ style: { width: "100%", boxSizing: "border-box" } }}
-                            contentAfter={fieldIconElement}
-                            onCompositionStart={handleCompositionStart}
-                            onCompositionEnd={handleCompositionEnd as React.CompositionEventHandler<HTMLInputElement>}
-                            onChange={(_, data) => handleChange(data.value)}
-                        />
+                        <Field {...validationFieldProps}>
+                            <Input
+                                value={localValue}
+                                disabled={isDisabled}
+                                aria-invalid={hasRegexValidationError}
+                                root={{ style: { width: "100%", boxSizing: "border-box" } }}
+                                contentAfter={fieldIconElement}
+                                onCompositionStart={handleCompositionStart}
+                                onCompositionEnd={handleCompositionEnd as React.CompositionEventHandler<HTMLInputElement>}
+                                onChange={(_, data) => handleChange(data.value)}
+                            />
+                        </Field>
                     </div>
                 )}
                 {showCounter && hasLimit && (
