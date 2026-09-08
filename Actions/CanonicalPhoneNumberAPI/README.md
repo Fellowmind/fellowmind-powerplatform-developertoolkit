@@ -17,15 +17,15 @@ Request parameters:
 
 | Unique name | Type | Required |
 | --- | --- | --- |
-| `ExistingPhoneNumber` | String | Yes |
-| `CountryCode` | String | Yes |
+| `fmfi_CanonicalPhoneNumberAPI_ExistingPhoneNumber` | String | Yes |
+| `fmfi_CanonicalPhoneNumberAPI_CountryCode` | String | Yes |
 
 Response properties:
 
 | Unique name | Type |
 | --- | --- |
-| `Success` | Boolean |
-| `Response` | String |
+| `fmfi_CanonicalPhoneNumberAPI_Success` | Boolean |
+| `fmfi_CanonicalPhoneNumberAPI_Response` | String |
 
 Build and register the strong-name-signed `CanonicalPhoneNumberAPI.dll` as a
 normal Dataverse plug-in assembly. The assembly has no non-platform runtime
@@ -37,8 +37,8 @@ National input:
 
 ```json
 {
-  "ExistingPhoneNumber": "040 123 4567",
-  "CountryCode": "FIN"
+  "fmfi_CanonicalPhoneNumberAPI_ExistingPhoneNumber": "040 123 4567",
+  "fmfi_CanonicalPhoneNumberAPI_CountryCode": "FIN"
 }
 ```
 
@@ -46,8 +46,8 @@ Successful response:
 
 ```json
 {
-  "Success": true,
-  "Response": "+358401234567"
+  "fmfi_CanonicalPhoneNumberAPI_Success": true,
+  "fmfi_CanonicalPhoneNumberAPI_Response": "+358401234567"
 }
 ```
 
@@ -55,8 +55,8 @@ Validation response:
 
 ```json
 {
-  "Success": false,
-  "Response": "The phone number length is invalid for country 'FIN'."
+  "fmfi_CanonicalPhoneNumberAPI_Success": false,
+  "fmfi_CanonicalPhoneNumberAPI_Response": "The phone number length is invalid for country 'FIN'."
 }
 ```
 
