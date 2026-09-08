@@ -45,9 +45,9 @@ Accept: application/json
 Content-Type: application/json; charset=utf-8
 
 {
-  "EntityName": "account",
-  "Id": "00000000-0000-0000-0000-000000000001",
-  "FieldName": "new_totalrevenue"
+  "fmfi_recalculaterollupfield_EntityName": "account",
+  "fmfi_recalculaterollupfield_Id": "00000000-0000-0000-0000-000000000001",
+  "fmfi_recalculaterollupfield_FieldName": "new_totalrevenue"
 }
 ```
 
@@ -62,12 +62,12 @@ Enable plug-in trace logging while validating failure cases.
 
 1. Invoke the API with a valid table logical name, record ID, and rollup column
    logical name. Confirm the call succeeds and the rollup column is recalculated.
-2. Omit `EntityName`, send it as an incompatible type, and send whitespace.
-   Confirm each call fails and the message identifies `EntityName`.
-3. Omit `Id`, send it as an incompatible type, and send the empty GUID. Confirm
-   each call fails and the message identifies `Id`.
-4. Omit `FieldName`, send it as an incompatible type, and send whitespace.
-   Confirm each call fails and the message identifies `FieldName`.
+2. Omit `fmfi_recalculaterollupfield_EntityName`, send it as an incompatible type, and send whitespace.
+   Confirm each call fails and the message identifies `fmfi_recalculaterollupfield_EntityName`.
+3. Omit `fmfi_recalculaterollupfield_Id`, send it as an incompatible type, and send the empty GUID. Confirm
+   each call fails and the message identifies `fmfi_recalculaterollupfield_Id`.
+4. Omit `fmfi_recalculaterollupfield_FieldName`, send it as an incompatible type, and send whitespace.
+   Confirm each call fails and the message identifies `fmfi_recalculaterollupfield_FieldName`.
 5. Invoke the API with an unknown table, a missing record, an unknown column,
    and a column that is not a rollup. Confirm each Dataverse failure reaches the
    caller rather than producing a successful response.
